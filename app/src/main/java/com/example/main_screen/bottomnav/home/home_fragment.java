@@ -117,67 +117,51 @@ public class home_fragment extends Fragment {
     public void updatePlacemarkMapObjectVisibility(ArrayList<Integer> selectedCheckBoxIds) {
         if (selectedCheckBoxIds.contains(R.id.checkBoxParks)) {
             ImageProvider imageProvider_2 = ImageProvider.fromResource(home_fragment.this.getActivity(), R.drawable.green_pin);
-            Point mappoint_4= new Point(56.861973, 53.172471);
+            Point mappoint_4= new Point(56.334274, 43.854942);
             PlacemarkMapObject placemark_4 = mapView.getMapWindow().getMap().getMapObjects().addPlacemark((mappoint_4), imageProvider_2);
             placemark_4.setIconStyle(new IconStyle().setScale(0.1f));
             placemark_4.addTapListener(mapObjectTapListener);
 
-            Point mappoint_5= new Point(56.846736, 53.197960);
+            Point mappoint_5= new Point(56.329333, 44.016239);
             PlacemarkMapObject placemark_5 = mapView.getMapWindow().getMap().getMapObjects().addPlacemark((mappoint_5), imageProvider_2);
             placemark_5.setIconStyle(new IconStyle().setScale(0.1f));
             placemark_5.addTapListener(mapObjectTapListener);
 
-            Point mappoint_6= new Point(56.887326, 53.249373);
+            Point mappoint_6= new Point(56.329576, 44.009824);
             PlacemarkMapObject placemark_6 = mapView.getMapWindow().getMap().getMapObjects().addPlacemark((mappoint_6), imageProvider_2);
             placemark_6.setIconStyle(new IconStyle().setScale(0.1f));
             placemark_6.addTapListener(mapObjectTapListener);
         }
         if (selectedCheckBoxIds.contains(R.id.checkBoxTheaters)) {
             ImageProvider imageProvider = ImageProvider.fromResource(home_fragment.this.getActivity(), R.drawable.location_pin);
-            Point mappoint_1= new Point(56.844125, 53.199509);
+            Point mappoint_1= new Point(56.325716, 44.004898);
             PlacemarkMapObject placemark_1 = mapView.getMapWindow().getMap().getMapObjects().addPlacemark((mappoint_1), imageProvider);
             placemark_1.setIconStyle(new IconStyle().setScale(0.1f));
             placemark_1.addTapListener(mapObjectTapListener);
 
-            Point mappoint_2= new Point(56.850470, 53.199591);
+            Point mappoint_2= new Point(56.333123, 43.902013);
             PlacemarkMapObject placemark_2 = mapView.getMapWindow().getMap().getMapObjects().addPlacemark((mappoint_2), imageProvider);
             placemark_2.setIconStyle(new IconStyle().setScale(0.1f));
             placemark_2.addTapListener(mapObjectTapListener);
 
-            Point mappoint_3= new Point(56.845329, 53.198977);
+            Point mappoint_3= new Point(56.324411, 44.003085);
             PlacemarkMapObject placemark_3 = mapView.getMapWindow().getMap().getMapObjects().addPlacemark((mappoint_3), imageProvider);
             placemark_3.setIconStyle(new IconStyle().setScale(0.1f));
             placemark_3.addTapListener(mapObjectTapListener);
 
-        } if (selectedCheckBoxIds.contains(R.id.checkBoxRestaurants)) {
-            ImageProvider imageProvider_3 = ImageProvider.fromResource(home_fragment.this.getActivity(), R.drawable.yellow_pin);
-            Point mappoint_7= new Point(56.848160, 53.205816);
-            PlacemarkMapObject placemark_7 = mapView.getMapWindow().getMap().getMapObjects().addPlacemark((mappoint_7), imageProvider_3);
-            placemark_7.setIconStyle(new IconStyle().setScale(0.1f));
-            placemark_7.addTapListener(mapObjectTapListener);
-
-            Point mappoint_8= new Point(56.866523, 53.207575);
-            PlacemarkMapObject placemark_8 = mapView.getMapWindow().getMap().getMapObjects().addPlacemark((mappoint_8), imageProvider_3);
-            placemark_8.setIconStyle(new IconStyle().setScale(0.1f));
-            placemark_8.addTapListener(mapObjectTapListener);
-
-            Point mappoint_9= new Point(56.848942, 53.195590);
-            PlacemarkMapObject placemark_9 = mapView.getMapWindow().getMap().getMapObjects().addPlacemark((mappoint_9), imageProvider_3);
-            placemark_9.setIconStyle(new IconStyle().setScale(0.1f));
-            placemark_9.addTapListener(mapObjectTapListener);
         } if (selectedCheckBoxIds.contains(R.id.checkBoxMuseums)){
             ImageProvider imageProvider_4 = ImageProvider.fromResource(home_fragment.this.getActivity(), R.drawable.blue_pin);
-            Point mappoint_10= new Point(56.845400, 53.206505);
+            Point mappoint_10= new Point(56.320417, 43.946482);
             PlacemarkMapObject placemark_10 = mapView.getMapWindow().getMap().getMapObjects().addPlacemark((mappoint_10), imageProvider_4);
             placemark_10.setIconStyle(new IconStyle().setScale(0.1f));
             placemark_10.addTapListener(mapObjectTapListener);
 
-            Point mappoint_11= new Point(56.860644, 53.182360);
+            Point mappoint_11= new Point(56.318164, 43.995279);
             PlacemarkMapObject placemark_11 = mapView.getMapWindow().getMap().getMapObjects().addPlacemark((mappoint_11), imageProvider_4);
             placemark_11.setIconStyle(new IconStyle().setScale(0.1f));
             placemark_11.addTapListener(mapObjectTapListener);
 
-            Point mappoint_12= new Point(56.843974, 53.198077);
+            Point mappoint_12= new Point(56.328139, 44.006500);
             PlacemarkMapObject placemark_12 = mapView.getMapWindow().getMap().getMapObjects().addPlacemark((mappoint_12), imageProvider_4);
             placemark_12.setIconStyle(new IconStyle().setScale(0.1f));
             placemark_12.addTapListener(mapObjectTapListener);

@@ -195,16 +195,20 @@ public class ThemainscreenFragment extends Fragment {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
                 popularRec.setVisibility(VISIBLE);
+                homeCatRec.setVisibility(VISIBLE);
             }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 popularRec.setVisibility(VISIBLE);
+                homeCatRec.setVisibility(VISIBLE);
+
             }
 
             @Override
             public void afterTextChanged(Editable s) {
                 popularRec.setVisibility(VISIBLE);
+                homeCatRec.setVisibility(VISIBLE);
                 if (s.toString().isEmpty()){
                     viewAllModelList.clear();
                     viewAllAdapters.notifyDataSetChanged();
@@ -233,11 +237,13 @@ public class ThemainscreenFragment extends Fragment {
                                     viewAllAdapters.notifyDataSetChanged();
                                 }
                                 popularRec.setVisibility(INVISIBLE);
+                                homeCatRec.setVisibility(INVISIBLE);
                             }
                         }
                     });
         }if (type.isEmpty()){
             popularRec.setVisibility(VISIBLE);
+            homeCatRec.setVisibility(VISIBLE);
         }
 
 

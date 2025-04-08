@@ -56,6 +56,13 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".ViewAllActivity"
+            android:exported="true">
+            <intent-filter>
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
             android:name=".Category"
             android:exported="false" />
         <activity

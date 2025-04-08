@@ -8,6 +8,7 @@
     <color name="light">#F2EDF6</color>
     <color name="purple">#FFC7D1</color>
     <color name="gray">#6D6D6D</color>
-    <color name="grey">#6D6D6D</color>
-    <color name="light_blue">#C0CCEC</color>
+    <color name="grey">#F8F7F9</color>
+    <color name="light_blue">#B3CFFF</color>
+    <color name="light_purple">#E8CFFF</color>
 </resources>

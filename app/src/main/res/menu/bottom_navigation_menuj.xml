@@ -9,13 +9,13 @@
         android:title="Events"
         android:icon="@drawable/events_icon"/>
     <item
+        android:id="@+id/favourite"
+        android:title="Study"
+        android:icon="@drawable/study"/>
+    <item
         android:id="@+id/plus"
         android:title="Chats"
         android:icon="@drawable/message"/>
-    <item
-        android:id="@+id/favourite"
-        android:title="Favourite"
-        android:icon="@drawable/fav_icon"/>
     <item
         android:id="@+id/profile"
         android:title="Profile"

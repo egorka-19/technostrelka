@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
@@ -17,15 +16,14 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.main_screen.Category;
-import com.example.main_screen.MainActivity;
 import com.example.main_screen.R;
 import com.example.main_screen.databinding.FragmentFavBinding;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import adapter.Course;
-import adapter.CourseAdapter;
+import com.example.main_screen.adapter.Course;
+import com.example.main_screen.adapter.CourseAdapter;
 
 public class fav_fragment extends Fragment {
     private FragmentFavBinding binding;

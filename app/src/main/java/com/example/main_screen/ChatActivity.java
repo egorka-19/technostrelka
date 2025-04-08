@@ -24,8 +24,8 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import adapter.ChatAdapter;
-import model.Message;
+import com.example.main_screen.adapter.ChatAdapter;
+import com.example.main_screen.model.Message;
 
 public class ChatActivity extends AppCompatActivity {
 

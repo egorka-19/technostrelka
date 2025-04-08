@@ -10,8 +10,8 @@ import android.os.Bundle;
 import java.util.ArrayList;
 import java.util.List;
 
-import adapter.Reviews1;
-import adapter.ReviewsAdapter;
+import com.example.main_screen.adapter.Reviews1;
+import com.example.main_screen.adapter.ReviewsAdapter;
 
 public class Reviews extends AppCompatActivity {
 

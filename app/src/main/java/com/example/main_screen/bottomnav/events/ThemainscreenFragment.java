@@ -1,169 +1,320 @@
 package com.example.main_screen.bottomnav.events;
 
-import android.content.Context;
+import static android.view.View.INVISIBLE;
+import static android.view.View.VISIBLE;
+
+import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.TextView;
+import android.widget.ProgressBar;
+import android.widget.ScrollView;
+import android.widget.Toast;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.main_screen.Category;
-import com.example.main_screen.MainActivity;
+import com.bumptech.glide.Glide;
+import com.example.main_screen.model.HomeCategory;
+import com.example.main_screen.model.PopularModel;
+import com.example.main_screen.model.ViewAllModel;
 import com.example.main_screen.R;
-import com.example.main_screen.databinding.ActivityThemainscreenBinding;
+import com.example.main_screen.adapter.HomeAdapter;
+import com.example.main_screen.adapter.PopularAdapters;
+import com.example.main_screen.adapter.ViewAllAdapters;
+import com.example.main_screen.databinding.FragmentMainBinding;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.UploadTask;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import adapter.Course;
-import adapter.CourseAdapter;
-
 public class ThemainscreenFragment extends Fragment {
-    private ActivityThemainscreenBinding binding;
-    private List<CategoryWithCourses> categoriesWithCourses = new ArrayList<>();
+    ScrollView scrollView;
+    ProgressBar progressBar;
+    private FragmentMainBinding binding;
+    FirebaseFirestore db;
+    private Uri filePath;
+
+    private ImageButton nextButton, allCategoryBtn;
+    RecyclerView popularRec, homeCatRec;
+
+    private CheckBox low12, bow12;
+    PopularAdapters popularAdapters;
+    List<PopularModel> popularModelList;
+
+    List<HomeCategory> categoryList;
+    HomeAdapter homeAdapter;
+    EditText search_box;
+    private List<ViewAllModel> viewAllModelList;
+    private RecyclerView recyclerViewSearch;
+    private ViewAllAdapters viewAllAdapters;
+
+    public String phone;
+
+    private int age;
+    String welcome_text;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        binding = ActivityThemainscreenBinding.inflate(inflater, container, false);
+        binding = FragmentMainBinding.inflate(inflater, container, false);
+        View view = binding.getRoot();
+        db = FirebaseFirestore.getInstance();
+        popularRec = view.findViewById(R.id.pop_rec);
+        scrollView = view.findViewById(R.id.scroll_view);
+        homeCatRec = view.findViewById(R.id.exp_rec);
+        progressBar = view.findViewById(R.id.progressbar);
+        phone = requireActivity().getIntent().getStringExtra("phone");
+        loadUserInfo();
 
-        // Получение ссылки на кнопку из разметки фрагмента
-        ImageButton button = binding.getRoot().findViewById(R.id.category_back);
 
-        button.setOnClickListener(new View.OnClickListener() {
+        progressBar.setVisibility(VISIBLE);
+        scrollView.setVisibility(View.GONE);
+
+        popularRec.setLayoutManager(new GridLayoutManager(getContext(), 2));
+//        popularRec.setLayoutManager(new GridLayoutManager(getActivity(), RecyclerView.VERTICAL, false));
+        popularModelList = new ArrayList<>();
+        popularAdapters = new PopularAdapters(getActivity(), popularModelList);
+        popularRec.setAdapter(popularAdapters);
+
+        db.collection("events")
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                PopularModel popularModel= document.toObject(PopularModel.class);
+                                popularModelList.add(popularModel);
+                                popularAdapters.notifyDataSetChanged();
+                                progressBar.setVisibility(View.GONE);
+                                scrollView.setVisibility(VISIBLE);
+                            }
+                        } else {
+                            System.out.println("Error" + task.getException());
+                            binding.welcomeText.setText("E " + task.getException());
+
+                            Toast.makeText(getActivity(), "Error" + task.getException(), Toast.LENGTH_LONG).show();
+                        }
+                    }
+                });
+
+        homeCatRec.setLayoutManager(new LinearLayoutManager(getActivity(), RecyclerView.HORIZONTAL, false));
+        categoryList = new ArrayList<>();
+        homeAdapter = new HomeAdapter(getActivity(), categoryList);
+        homeCatRec.setAdapter(homeAdapter);
+
+        db.collection("HomeCategory")
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                HomeCategory homeCategory= document.toObject(HomeCategory.class);
+                                categoryList.add(homeCategory);
+                                homeAdapter.notifyDataSetChanged();
+                            }
+                        } else {
+                            System.out.println("Error" + task.getException());
+                            binding.welcomeText.setText("E " + task.getException());
+
+                            Toast.makeText(getActivity(), "Error" + task.getException(), Toast.LENGTH_LONG).show();
+                        }
+                    }
+                });
+
+
+        ActivityResultLauncher<Intent> pickImageActivityResultLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                new ActivityResultCallback<ActivityResult>() {
+                    @Override
+                    public void onActivityResult(ActivityResult result) {
+                        if (result.getResultCode()== Activity.RESULT_OK && result.getData()!=null && result.getData().getData()!=null){
+                            filePath = result.getData().getData();
+
+                            try{
+                                Bitmap bitmap = MediaStore.Images.Media
+                                        .getBitmap(
+                                                requireContext().getContentResolver(),
+                                                filePath
+                                        );
+                                binding.avatarIv.setImageBitmap(bitmap);
+                            }catch(IOException e){
+                                e.printStackTrace();
+                            }
+
+                            uploadImage();
+                        }
+                    }
+                }
+        );
+
+        ////////////Search View
+
+        recyclerViewSearch = view.findViewById(R.id.search_rec);
+        search_box = view.findViewById(R.id.serach_box);
+        viewAllModelList = new ArrayList<>();
+        viewAllAdapters = new ViewAllAdapters(getContext(), viewAllModelList);
+        recyclerViewSearch.setLayoutManager(new GridLayoutManager(getContext(), 2));
+        recyclerViewSearch.setAdapter(viewAllAdapters);
+        recyclerViewSearch.setHasFixedSize(true);
+        search_box.addTextChangedListener(new TextWatcher() {
             @Override
-            public void onClick(View v) {
-                // Создание объекта Intent для перехода на активити
-                Intent intent = new Intent(getActivity(), Category.class);
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                popularRec.setVisibility(VISIBLE);
+            }
 
-                // Добавление дополнительной информации, если необходимо
-                intent.putExtra("key", "value");
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                popularRec.setVisibility(VISIBLE);
+            }
 
-                // Запуск активити
-                startActivity(intent);
+            @Override
+            public void afterTextChanged(Editable s) {
+                popularRec.setVisibility(VISIBLE);
+                if (s.toString().isEmpty()){
+                    viewAllModelList.clear();
+                    viewAllAdapters.notifyDataSetChanged();
+                }else{
+                    searchProduct(s.toString());
+                }
+
             }
         });
 
-        return binding.getRoot();
+        return view;
+    }
+
+    private void searchProduct(String type) {
+        if (!type.isEmpty()){
+            db.collection("events").whereEqualTo("type", type).get()
+                    .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                            if (task.isSuccessful() && task.getResult() != null){
+                                viewAllModelList.clear();
+                                viewAllAdapters.notifyDataSetChanged();
+                                for (DocumentSnapshot doc : task.getResult().getDocuments()){
+                                    ViewAllModel viewAllModel = doc.toObject(ViewAllModel.class);
+                                    viewAllModelList.add(viewAllModel);
+                                    viewAllAdapters.notifyDataSetChanged();
+                                }
+                                popularRec.setVisibility(INVISIBLE);
+                            }
+                        }
+                    });
+        }if (type.isEmpty()){
+            popularRec.setVisibility(VISIBLE);
+        }
+
+
+    }
+
+    private void loadUserInfo() {
+        FirebaseDatabase.getInstance().getReference().child("Users").child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (snapshot.exists()) {
+                            String profileImage = snapshot.child("profileImage").getValue().toString();
+
+                            if (!profileImage.isEmpty()) {
+                                // Очищаем кеш Glide перед загрузкой нового изображения
+                                Glide.with(getContext())
+                                        .load(profileImage)
+                                        .placeholder(R.drawable.loggg)
+                                        .skipMemoryCache(true)  // Пропускаем кеш памяти
+                                        .into(binding.avatarIv);
+                            } else {
+                                Toast.makeText(getContext(), "Загрузите свое фото!", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        // Обработка ошибок базы данных
+                    }
+                });
     }
 
 
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
 
-        ArrayList<Integer> selectedCheckBoxIds = requireActivity().getIntent().getIntegerArrayListExtra("selectedCheckBoxIds");
+//    private void setPublishRecycler() {
+//        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext(), RecyclerView.HORIZONTAL, false);
+//        recyclepublish = binding.recyclepublish;
+//        recyclepublish.setLayoutManager(layoutManager);
+//
+//        PublishAdapter publishAdapter = new PublishAdapter(getContext(), PublishList);
+//        recyclepublish.setAdapter(publishAdapter);
+//    }
 
-        for (Integer checkBoxId : selectedCheckBoxIds) {
-            getCheckBoxNameById(checkBoxId);
-        }
 
-        RecyclerView recyclerView = binding.recycle;
-        recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
 
-        MainscreenAdapter adapter = new MainscreenAdapter(requireContext(), categoriesWithCourses);
-        recyclerView.setAdapter(adapter);
+    private void uploadImage(){
+        if (filePath != null) {
+            // Загрузка изображения в Firebase Storage
+            FirebaseStorage.getInstance().getReference().child("Product Images/" + phone)
+                    .putFile(filePath).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                        @Override
+                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                            Toast.makeText(getContext(), "Фото загружено успешно", Toast.LENGTH_SHORT).show();
 
-    }
-
-    private void getCheckBoxNameById(int checkBoxId) {
-        if (checkBoxId == R.id.checkBoxMovies) {
-            List<Course> ListCinema = new ArrayList<>();
-            ListCinema.add(new Course(1, "Мастер и Маргарита", "Фэнтезийная драма",  "master", "Кино", false, 0, 0, "Амбициозная версия романа от создателей «Серебряных коньков». Мастер — Евгений Цыганов, Маргарита — Юлия Снигирь, Воланд — Аугуст Диль"));
-            ListCinema.add(new Course(2, "Лёд 3", "Мелодрама",  "ice", "Кино",false, 0, 0, "Финал романтической трилогии с Александром Петровым: дочь хоккеиста Горина становится фигуристкой и влюбляется"));
-            ListCinema.add(new Course(3, "Онегин", "Мелодрама, драма",  "onegin", "Кино",false,0, 0, "Сарик Андреасян экранизирует Пушкина. В роли Онегина — Виктор Добронравов"));
-            categoriesWithCourses.add(new CategoryWithCourses("Кино", ListCinema));
-        } else if (checkBoxId == R.id.checkBoxTheaters) {
-            List<Course> ListTheatres = new ArrayList<>();
-            ListTheatres.add(new Course(13, "Робин Гуд", "Русский драматический театр Удмуртии",  "robin", "Театры",false,56.844125, 53.199509, "Благородный разбойник Робин Гуд всегда приходит на помощь угнетенным и обиженным. Недаром уже восьмой век про него слагают легенды и баллады, пишут книги, а в последнее время снимают фильмы и ставят спектакли"));
-            ListTheatres.add(new Course(14, "Любовь и голуби ", "ДК “Аксион”",  "loveandgolub", "Театры",false,56.850470, 53.199591, "Музыкальная история с актёрами трёх поколений"));
-            ListTheatres.add(new Course(15, "Алые паруса", "Национальный театр",  "redparus", "Театры",false,56.845329, 53.198977, "Известная каждому трогательная история о любви и мечте, романтическая повесть-феерия «Алые паруса» Александра Грина в сверхпопулярном жанре мюзикла обретает абсолютно новое, оригинальное, во многом неожиданное звучание"));
-            categoriesWithCourses.add(new CategoryWithCourses("Театры", ListTheatres));
-        } else if (checkBoxId == R.id.checkBoxRestaurants) {
-            List<Course> ListRestaurants = new ArrayList<>();
-            ListRestaurants.add(new Course(7, "Panorama", "Открыт до 23:00",  "panorama", "Рестораны",false,56.848942, 53.195590, "Ресторан на набережной Ижевского пруда. Проведите время со вкусом и с удовольствием, наслаждаясь авторской кухней, шикарными видами в одном из самых живописных мест города Ижевска"));
-            ListRestaurants.add(new Course(8, "Penthouse", "Открыт до 00:00",  "penthouse", "Рестораны",false,56.866523, 53.207575, "Ресторан авторской кухни, расположенный на высоком этаже с панорамными окнами, откуда открывается захватывающий вид на город с высоты птичьего полета"));
-            ListRestaurants.add(new Course(9, "Каре", "Открыт до 00:00",  "kare", "Рестораны",false,56.848160, 53.205816, "Современный городской ресторан, завоевавший доверие и предпочтение своих гостей качеством кухни и обслуживания."));
-            categoriesWithCourses.add(new CategoryWithCourses("Рестораны", ListRestaurants));
-        } else if (checkBoxId == R.id.checkBoxParks) {
-            List<Course> ListParks = new ArrayList<>();
-            ListParks.add(new Course(10, "Парк имени С. М. Кирова", "Открыт до 23:00",  "kirova", "Парки",false,56.864117, 53.163655, "Самая большая в Ижевске лесопарковая территория. Это место для прогулок, велоспорта, пробежек. Зимой тут организованы каток и лыжная трасса"));
-            ListParks.add(new Course(11, "Летний сад им. М. Горького", "Открыт до 22:00",  "gorkogo", "Парки",false,56.846736, 53.197960, "Одно из самых известных и старейших общественных пространств Ижевска. Это место сосредоточения городских аттракционов, здесь проходят масштабные мероприятия"));
-            ListParks.add(new Course(12, "Парк Космонавтов", "Открыт до 21:00",  "cosmos", "Парки",false,56.887326, 53.249373, "Популярное место для семейного отдыха в районе Буммаш в Ижевске. В теплое время года посетители могут насладиться прогулкой по тенистым аллеям и извилистым дорожкам, прокатиться на аттракционах"));
-            categoriesWithCourses.add(new CategoryWithCourses("Парки", ListParks));
-        } else if (checkBoxId == R.id.checkBoxMuseums) {
-            List<Course> ListMuseum = new ArrayList<>();
-            ListMuseum.add(new Course(4, "Музей ИЖМАШ", "ул. Свердлова, 32",  "izhmash", "Музеи",false,56.843974, 53.198077, "Музей, где представлена коллекция оружия начиная с 1808 года и до наших дней, а также мотоциклы"));
-            ListMuseum.add(new Course(5, "Музей почты Удмуртии", "ул. Кирова, 7",  "pochta", "Музеи",false,56.860644, 53.182360, "Более 800 архивных материалов XIX-XX веков и почтовых предметов хранится в фондах музея. "));
-            ListMuseum.add(new Course(6, "Ижевский Мотомузей Кожушковых", "Советская ул., 9",  "Музеи","kozhushkovi",false,56.845400, 53.206505, "Уникальная частная коллекция мототехники, расположенная в лофт-пространстве среди винтажный вещей, окутанных семейной историей."));
-            categoriesWithCourses.add(new CategoryWithCourses("Музеи", ListMuseum));
-        }
-    }
-
-    public static class CategoryWithCourses {
-        private String categoryTitle;
-        private List<Course> courses;
-
-        public CategoryWithCourses(String categoryTitle, List<Course> courses) {
-            this.categoryTitle = categoryTitle;
-            this.courses = courses;
-        }
-
-        public String getCategoryTitle() {
-            return categoryTitle;
-        }
-
-        public List<Course> getCourses() {
-            return courses;
-        }
-    }
-
-    public static class MainscreenAdapter extends RecyclerView.Adapter<MainscreenAdapter.CategoryViewHolder> {
-        private Context context;
-        private List<CategoryWithCourses> categoriesWithCourses;
-        public MainscreenAdapter(Context context, List<CategoryWithCourses> categoriesWithCourses) {
-            this.context = context;
-            this.categoriesWithCourses = categoriesWithCourses;
-        }
-
-        @Override
-        public CategoryViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_category_with_cources, parent, false);
-            return new CategoryViewHolder(view);
-        }
-
-        @Override
-        public void onBindViewHolder(CategoryViewHolder holder, int position) {
-            CategoryWithCourses categoryWithCourses = categoriesWithCourses.get(position);
-            holder.categoryTitle.setText(categoryWithCourses.getCategoryTitle());
-            CourseAdapter courseAdapter = new CourseAdapter(context, categoryWithCourses.getCourses());
-            holder.courseRecyclerView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false));
-            holder.courseRecyclerView.setAdapter(courseAdapter);
-        }
-
-        @Override
-        public int getItemCount() {
-            return categoriesWithCourses.size();
-        }
-
-        public static class CategoryViewHolder extends RecyclerView.ViewHolder {
-            TextView categoryTitle;
-            RecyclerView courseRecyclerView;
-
-            public CategoryViewHolder(View itemView) {
-                super(itemView);
-                categoryTitle = itemView.findViewById(R.id.category_title);
-                courseRecyclerView = itemView.findViewById(R.id.course_recycler_view);
-            }
+                            // Получаем URL загруженного изображения
+                            FirebaseStorage.getInstance().getReference().child("Product Images/" + phone).getDownloadUrl()
+                                    .addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                        @Override
+                                        public void onSuccess(Uri uri) {
+                                            // Обновляем URL изображения в базе данных
+                                            FirebaseDatabase.getInstance().getReference().child("Users").child(phone)
+                                                    .child("profileImage").setValue(uri.toString())
+                                                    .addOnCompleteListener(task -> {
+                                                        if (task.isSuccessful()) {
+                                                            // Очищаем кеш Glide для обновления изображения
+                                                            Glide.with(getContext())
+                                                                    .load(uri)
+                                                                    .placeholder(R.drawable.down_splash_citek)
+                                                                    .skipMemoryCache(true)  // Пропускаем кеш памяти
+                                                                    .into(binding.avatarIv);
+                                                        }
+                                                    });
+                                        }
+                                    });
+                        }
+                    });
         }
     }
 }

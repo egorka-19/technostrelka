@@ -93,7 +93,7 @@ public class home_fragment extends Fragment {
         // And to show what can be done with it, we move the camera to the center of the target location.
         if (mapView != null) {
             mapView.getMapWindow().getMap().move(
-                    new CameraPosition(new Point(56.852924, 53.210754), 14.0f, 0.0f, 0.0f),
+                    new CameraPosition(new Point(56.326797, 44.006516), 14.0f, 0.0f, 0.0f),
                     new Animation(Animation.Type.SMOOTH, 5),
                     null);
         }

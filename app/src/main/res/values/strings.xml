@@ -1,0 +1,34 @@
+<resources>
+    <string name="app_name">TECHNOSTRELKA</string>
+    <string name="log">Введите логин</string>
+    <string name="pass">Введите пароль</string>
+    <string name="hello">Добро пожаловать!</string>
+    <string name="sign">Вход</string>
+    <string name="sign_but">Войти</string>
+    <string name="quest">Вы впервые?</string>
+    <string name="reg">Зарегистрируйтесь!</string>
+
+    <!--activity_category -->
+    <string name="category">Выберите категорию:</string>
+    <string name="all_cat">Все категории</string>
+    <string name="cinema">Кино</string>
+    <string name="parks">Парки</string>
+    <string name="theatres">Театры</string>
+    <string name="restaurant">Рестораны</string>
+    <string name="museum">Музеи</string>
+    <string name="complete">Готово</string>
+    <string name="middle">middle</string>
+    <string name="down">down</string>
+
+    <!--activity_themainscreen -->
+    <string name="main">Главная</string>
+    <string name="all_category">all_category</string>
+    <string name="place">Места и мероприятия</string>
+    <string name="road">Маршруты</string>
+
+    <!--activity_course_page -->
+    <string name="master">Мастер и Маргарита</string>
+    <string name="desc">В 5 кинотеатрах</string>
+    <string name="text">Амбициозная версия романа от создателей «Серебряных коньков». Мастер — Евгений Цыганов, Маргарита — Юлия Снигирь, Воланд — Аугуст Диль</string>
+
+</resources>

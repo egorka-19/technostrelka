@@ -1,1 +1,1 @@
-# technostrelka
+# technostrelka# ComicApp

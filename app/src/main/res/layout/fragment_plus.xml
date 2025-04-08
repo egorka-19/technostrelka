@@ -4,144 +4,31 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context=".bottomnav.plus.PlusFragment"
-    android:background="@color/white">
+    tools:context="bottomnav.rate.RateFragment"
+    >
 
-    <TextView
-        android:id="@+id/addPhoto_Tv"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="25dp"
-        android:layout_marginEnd="130dp"
-        android:text="Прикрепите фотографию:"
-        android:textSize="20sp"
+
+    <ImageView
+        android:id="@+id/back_robik"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="50dp"
+        android:src="@drawable/back_robik"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/plus_tv" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <ImageButton
-        android:id="@+id/addPhotoBtn"
-        android:layout_width="200dp"
-        android:layout_height="150dp"
-        android:layout_marginTop="21dp"
-        android:layout_marginEnd="170dp"
-        android:background="@android:color/transparent"
-        android:src="@drawable/add_photo_original"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/addPhoto_Tv" />
-
-    <TextView
-        android:id="@+id/addName_Tv"
+        android:id="@+id/next_button"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:layout_marginEnd="130dp"
-        android:layout_marginBottom="370dp"
-        android:text="Введите название поста:"
-        android:textSize="20sp"
+        android:layout_height="70dp"
+        android:layout_marginBottom="30dp"
+        android:backgroundTint="@android:color/transparent"
+        android:scaleType="centerInside"
+        android:src="@drawable/next_button"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/addPhotoBtn" />
-
-    <EditText
-        android:id="@+id/textpostname_Et"
-        android:layout_width="320dp"
-        android:layout_height="45dp"
-        android:layout_marginTop="5dp"
-        android:layout_marginEnd="50dp"
-        android:layout_marginBottom="300dp"
-        android:ems="10"
-        android:hint="Введите текст"
-        android:inputType="text"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/addName_Tv" />
-
-    <TextView
-        android:id="@+id/textView7"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:layout_marginEnd="255dp"
-        android:layout_marginBottom="260dp"
-        android:text="Ваш отзыв:"
-        android:textSize="20sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textpostname_Et" />
-
-    <ImageView
-        android:id="@+id/imageView10"
-        android:layout_width="3dp"
-        android:layout_height="123dp"
-        android:layout_marginTop="5dp"
-        android:layout_marginEnd="350dp"
-        android:src="@drawable/stick_plus"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView7" />
-
-    <EditText
-        android:id="@+id/textpost_Et"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
-        android:layout_marginEnd="200dp"
-        android:ems="10"
-        android:hint="Введите текст"
-        android:inputType="text"
-        android:textSize="14sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/imageView10"
-        app:layout_constraintTop_toBottomOf="@+id/textView7" />
-
-    <Button
-        android:id="@+id/send_Btn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="130dp"
-        android:backgroundTint="@color/red_pink"
-        android:text="Опубликовать"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textpost_Et" />
-
-    <ImageView
-        android:id="@+id/imageView9"
-        android:layout_width="150dp"
-        android:layout_height="80dp"
-        android:layout_marginTop="3dp"
-        android:layout_marginEnd="-10dp"
-        android:src="@drawable/left_stick_plus"
-        app:layout_constraintEnd_toStartOf="@+id/plus_tv"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <ImageView
-        android:id="@+id/imageView12"
-        android:layout_width="150dp"
-        android:layout_height="80dp"
-        android:layout_marginStart="-10dp"
-        android:layout_marginTop="4dp"
-        android:src="@drawable/right_stick_plus"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/plus_tv"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/plus_tv"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:fontFamily="@font/roboto_medium"
-        android:text="Создание"
-        android:textSize="30sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

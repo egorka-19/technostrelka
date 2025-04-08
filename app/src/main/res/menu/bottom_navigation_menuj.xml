@@ -11,7 +11,7 @@
     <item
         android:id="@+id/plus"
         android:title="Plus"
-        android:icon="@drawable/plus_icon"/>
+        android:icon="@drawable/message"/>
     <item
         android:id="@+id/favourite"
         android:title="Favouite"

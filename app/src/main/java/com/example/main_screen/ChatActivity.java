@@ -10,11 +10,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-
-import org.json.JSONArray;
-import org.json.JSONObject;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.DatabaseReference;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
@@ -30,11 +32,21 @@ import com.example.main_screen.model.Message;
 public class ChatActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
-    private ChatAdapter adapter;
-    private final List<Message> messages = new ArrayList<>();
-    private EditText inputField;
+    private EditText editText;
     private ImageButton sendButton;
-    private final Handler handler = new Handler(Looper.getMainLooper());
+    private ChatAdapter adapter;
+    private List<Message> messages = new ArrayList<>();
+    private Handler handler;
+    private int currentStep = 0;
+    private final List<String> userAnswers = new ArrayList<>();
+    private FirebaseAuth mAuth;
+    private DatabaseReference userRef;
+
+    private final String[] questions = {
+            "1️⃣ Что тебе больше по душе?\nРешать логические задачи\nПридумывать и рисовать\nУзнавать о прошлом",
+            "2️⃣ Какой отдых тебе ближе?\nИграть в стратегии или собирать схемы\nСмотреть фильмы, рисовать, писать\nЧитать исторические книги или посещать музеи",
+            "3️⃣ С кем бы ты хотел встретиться?\nС инженером из будущего\nС режиссёром или художником\nС историком или археологом"
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,72 +54,128 @@ public class ChatActivity extends AppCompatActivity {
         setContentView(R.layout.activity_chat);
 
         recyclerView = findViewById(R.id.chat_recycler);
-        inputField = findViewById(R.id.enter);
+        editText = findViewById(R.id.enter);
         sendButton = findViewById(R.id.send);
-
+        handler = new Handler(Looper.getMainLooper());
         adapter = new ChatAdapter(messages);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
 
+        // Firebase init
+        mAuth = FirebaseAuth.getInstance();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null) {
+            userRef = FirebaseDatabase.getInstance().getReference().child("Users").child(currentUser.getUid());
+        }
+
+        addBotMessage("👋 Привет! Я твой культурный навигатор. Ответь на три коротких вопроса, чтобы я понял, что тебе интересно. Отвечай полноценными ответами.");
+        askNextQuestion();
+
         sendButton.setOnClickListener(v -> {
-            String userMessage = inputField.getText().toString().trim();
+            String userMessage = editText.getText().toString().trim();
             if (!userMessage.isEmpty()) {
-                addMessage(userMessage, Message.TYPE_USER);
-                inputField.setText("");
-                sendToBot(userMessage);
+                addUserMessage(userMessage);
+                editText.setText("");
+                if (currentStep < questions.length) {
+                    userAnswers.add(userMessage);
+                    askNextQuestion();
+                } else if (currentStep == questions.length) {
+                    userAnswers.add(userMessage);
+                    askAIAndRespond(userAnswers);
+                    currentStep++;
+                }
             }
         });
     }
 
-    private void addMessage(String message, int type) {
-        messages.add(new Message(message, type));
+    private void askNextQuestion() {
+        if (currentStep < questions.length) {
+            addBotMessage(questions[currentStep]);
+            currentStep++;
+        }
+    }
+
+    private void addUserMessage(String message) {
+        messages.add(new Message(message, 0));
         adapter.notifyItemInserted(messages.size() - 1);
         recyclerView.scrollToPosition(messages.size() - 1);
     }
 
-    private void sendToBot(String prompt) {
+    private void addBotMessage(String message) {
+        messages.add(new Message(message, 1));
+        adapter.notifyItemInserted(messages.size() - 1);
+        recyclerView.scrollToPosition(messages.size() - 1);
+    }
+
+    private void askAIAndRespond(List<String> answers) {
+        String prompt = "На основе следующих ответов определи, к какой области склонен человек: IT, творчество или история. Напиши свой ответ одним словом. Ответы: " + answers;
         ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.execute(() -> {
             String response = chatGPT(prompt);
-            handler.post(() -> addMessage(response, Message.TYPE_BOT));
+            handler.post(() -> {
+                addBotMessage(response);
+                saveUserCategory(response);
+            });
         });
     }
 
-    private String chatGPT(String prompt) {
-        try {
-            String apiUrl = "https://api.naga.ac/v1/chat/completions";
-            String apiKey = "ng-O5o7GnOt9AqR1rjknX08P3m6blgXs";
-            String model = "gpt-3.5-turbo";
+    private void saveUserCategory(String response) {
+        String category = "";
 
-            URL url = new URL(apiUrl);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("POST");
-            conn.setRequestProperty("Authorization", "Bearer " + apiKey);
-            conn.setRequestProperty("Content-Type", "application/json");
-            conn.setDoOutput(true);
+        response = response.toLowerCase();
+        if (response.contains("it")) {
+            category = "IT";
+        } else if (response.contains("творч")) {
+            category = "Творчество";
+        } else if (response.contains("истор")) {
+            category = "История";
+        }
+
+        if (!category.isEmpty() && userRef != null) {
+            userRef.child("category_user").setValue(category);
+        }
+    }
+
+    public static String chatGPT(String prompt) {
+        String url = "https://api.naga.ac/v1/chat/completions";
+        String apiKey = "ng-O5o7GnOt9AqR1rjknX08P3m6blgXs";
+        String model = "gpt-3.5-turbo";
+
+        try {
+            URL obj = new URL(url);
+            HttpURLConnection connection = (HttpURLConnection) obj.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Authorization", "Bearer " + apiKey);
+            connection.setRequestProperty("Content-Type", "application/json");
 
             String body = "{\"model\": \"" + model + "\", \"messages\": [{\"role\": \"user\", \"content\": \"" + prompt + "\"}]}";
 
-            OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream());
+            connection.setDoOutput(true);
+            OutputStreamWriter writer = new OutputStreamWriter(connection.getOutputStream());
             writer.write(body);
             writer.flush();
             writer.close();
 
-            BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            StringBuilder result = new StringBuilder();
+            BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            StringBuilder response = new StringBuilder();
             String line;
-            while ((line = reader.readLine()) != null) {
-                result.append(line);
+
+            while ((line = br.readLine()) != null) {
+                response.append(line);
             }
+            br.close();
 
-            JSONObject responseJson = new JSONObject(result.toString());
-            JSONArray choices = responseJson.getJSONArray("choices");
-            JSONObject messageObj = choices.getJSONObject(0).getJSONObject("message");
+            return extractMessageFromJSONResponse(response.toString());
 
-            return messageObj.getString("content").trim();
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
-            return "Ошибка при подключении к серверу.";
+            return "Большая нагрузка на сервер. Попробуйте еще раз через 30 секунд:)";
         }
+    }
+
+    public static String extractMessageFromJSONResponse(String response) {
+        int start = response.indexOf("content") + 10;
+        int end = response.indexOf("\"", start);
+        return response.substring(start, end);
     }
 }

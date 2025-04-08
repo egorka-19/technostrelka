@@ -2,22 +2,22 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 <item
     android:id="@+id/home"
-    android:title="Home"
-    android:icon="@drawable/home_icon"/>
+    android:title="Карты"
+    android:icon="@drawable/map"/>
     <item
         android:id="@+id/events"
-        android:title="Events"
+        android:title="Ивенты"
         android:icon="@drawable/events_icon"/>
     <item
-        android:id="@+id/favourite"
-        android:title="Study"
+        android:id="@+id/plus"
+        android:title="Обучение"
         android:icon="@drawable/study"/>
     <item
-        android:id="@+id/plus"
-        android:title="Chats"
-        android:icon="@drawable/message"/>
+        android:id="@+id/favourite"
+        android:title="Маршруты"
+        android:icon="@drawable/distance"/>
     <item
         android:id="@+id/profile"
-        android:title="Profile"
+        android:title="Профиль"
         android:icon="@drawable/profile_icon"/>
 </menu>

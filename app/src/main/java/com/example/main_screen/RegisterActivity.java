@@ -62,6 +62,7 @@ public class RegisterActivity extends AppCompatActivity {
                                         userRef.child("profileImage").setValue("");
                                         userRef.child("email").setValue(binding.emailEt.getText().toString());
                                         userRef.child("password").setValue(binding.passwordEt.getText().toString());
+                                        userRef.child("category_user").setValue("");
                                         userRef.child("postText").setValue("");
                                         userRef.child("postNameText").setValue("");
                                         userRef.child("postImages").setValue("");
@@ -81,7 +82,7 @@ public class RegisterActivity extends AppCompatActivity {
                                         userReviews.child("Museum").child("Izhmash").child(currentUser.getUid()).child("lovest").setValue(0);
                                         userReviews.child("Museum").child("Pochta_UR").child(currentUser.getUid()).child("lovest").setValue(0);
                                         userReviews.child("Museum").child("Motomuseum").child(currentUser.getUid()).child("lovest").setValue(0);
-                                        startActivity(new Intent(RegisterActivity.this, Category.class));
+                                        startActivity(new Intent(RegisterActivity.this, ChatActivity.class));
                                     }else{
                                         Toast.makeText(RegisterActivity.this, "You have some errors", Toast.LENGTH_SHORT).show();
                                     }

@@ -10,7 +10,7 @@
         android:icon="@drawable/events_icon"/>
     <item
         android:id="@+id/plus"
-        android:title="Plus"
+        android:title="Chats"
         android:icon="@drawable/message"/>
     <item
         android:id="@+id/favourite"

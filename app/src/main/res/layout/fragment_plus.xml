@@ -4,31 +4,82 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context="bottomnav.rate.RateFragment"
-    >
+    tools:context=".bottomnav.plus.PlusFragment">
 
-
-    <ImageView
-        android:id="@+id/back_robik"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginBottom="50dp"
-        android:src="@drawable/back_robik"
-        app:layout_constraintBottom_toBottomOf="parent"
+    <TextView
+        android:id="@+id/direction_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:fontFamily="@font/rostelecombasis_medium"
+        android:text="Ваше направление"
+        android:textSize="24sp"
+        android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <ImageButton
-        android:id="@+id/next_button"
-        android:layout_width="wrap_content"
-        android:layout_height="70dp"
-        android:layout_marginBottom="30dp"
-        android:backgroundTint="@android:color/transparent"
-        android:scaleType="centerInside"
-        android:src="@drawable/next_button"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+    <ScrollView
+        android:id="@+id/scroll_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/direction_text"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/games_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:layout_marginStart="16dp"
+                android:fontFamily="@font/rostelecombasis_medium"
+                android:text="Игры"
+                android:textSize="18sp"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/games_recycler"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"/>
+
+            <TextView
+                android:id="@+id/videos_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:layout_marginStart="16dp"
+                android:fontFamily="@font/rostelecombasis_medium"
+                android:text="Видеолекции"
+                android:textSize="18sp"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/videos_recycler"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"/>
+
+            <TextView
+                android:id="@+id/articles_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:layout_marginStart="16dp"
+                android:fontFamily="@font/rostelecombasis_medium"
+                android:text="Статьи"
+                android:textSize="18sp"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/articles_recycler"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"/>
+
+        </LinearLayout>
+    </ScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

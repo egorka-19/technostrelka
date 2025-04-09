@@ -30,4 +30,4 @@ public class PlaceModel implements Serializable {
     public String getType() {
         return type;
     }
-} 
+}

@@ -1,8 +1,8 @@
 package com.example.main_screen;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -14,13 +14,11 @@ import com.bumptech.glide.Glide;
 import com.example.main_screen.model.PlaceModel;
 import com.example.main_screen.model.PopularModel;
 import com.example.main_screen.model.ViewAllModel;
-import com.example.main_screen.add_response;
 
 public class product_card extends AppCompatActivity {
     ImageView detailedImg;
-    TextView price, description, name, raiting;
-    ImageButton get_reviews;
-    ImageView back_stata;
+    TextView description, name, age, date, place;
+    ImageButton backBtn, mapsButton;
 
     ViewAllModel viewAllModel = null;
     PopularModel popularModel = null;
@@ -32,54 +30,79 @@ public class product_card extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_product_card);
 
-        get_reviews = findViewById(R.id.get_reviews);
-        back_stata = findViewById(R.id.back_statistics);
+        // Initialize views
+        detailedImg = findViewById(R.id.pro_card_img);
+        description = findViewById(R.id.description);
+        name = findViewById(R.id.name);
+        age = findViewById(R.id.age);
+        date = findViewById(R.id.date);
+        place = findViewById(R.id.place);
+        backBtn = findViewById(R.id.back_btn);
+        mapsButton = findViewById(R.id.maps_button);
 
-        get_reviews.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(product_card.this, add_response.class);
+        // Set up back button
+        backBtn.setOnClickListener(v -> finish());
+
+        // Set up maps button
+        mapsButton.setOnClickListener(v -> {
+            String url = "";
+            if (viewAllModel != null) {
+                url = viewAllModel.getUrl();
+            } else if (popularModel != null) {
+                url = popularModel.getUrl();
+            }
+            
+            if (!url.isEmpty()) {
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                 startActivity(intent);
             }
         });
 
+        // Get data from intent
         final Object object = getIntent().getSerializableExtra("detail");
         if (object instanceof ViewAllModel) {
             viewAllModel = (ViewAllModel) object;
-        }
-        if (object instanceof PopularModel) {
+        } else if (object instanceof PopularModel) {
             popularModel = (PopularModel) object;
-        }
-        if (object instanceof PlaceModel) {
+        } else if (object instanceof PlaceModel) {
             placeModel = (PlaceModel) object;
         }
 
-        detailedImg = findViewById(R.id.pro_card_img);
-        price = findViewById(R.id.price);
-        raiting = findViewById(R.id.raiting);
-        description = findViewById(R.id.description);
-        name = findViewById(R.id.name);
-
+        // Load data into views
         if (viewAllModel != null) {
-            Glide.with(getApplicationContext()).load(viewAllModel.getImg_url()).into(detailedImg);
-            price.setText(viewAllModel.getPrice());
-            raiting.setText(viewAllModel.getRaiting());
-            description.setText(viewAllModel.getDescription());
-            name.setText(viewAllModel.getName());
+            loadViewAllModelData();
+        } else if (popularModel != null) {
+            loadPopularModelData();
+        } else if (placeModel != null) {
+            loadPlaceModelData();
         }
-        if (popularModel != null) {
-            Glide.with(getApplicationContext()).load(popularModel.getImg_url()).into(detailedImg);
-            price.setText(popularModel.getPrice());
-            raiting.setText(popularModel.getRaiting());
-            description.setText(popularModel.getDescription());
-            name.setText(popularModel.getName());
-        }
-        if (placeModel != null) {
-            detailedImg.setImageResource(placeModel.getImageResourceId());
-            name.setText(placeModel.getName());
-            description.setText(placeModel.getDescription());
-            raiting.setText(placeModel.getType());
-            price.setText(""); // Очищаем цену, так как для мест она не нужна
-        }
+    }
+
+    private void loadViewAllModelData() {
+        Glide.with(getApplicationContext())
+            .load(viewAllModel.getImg_url())
+            .into(detailedImg);
+        name.setText(viewAllModel.getName());
+        description.setText(viewAllModel.getDescription());
+        age.setText(viewAllModel.getAge());
+        date.setText(viewAllModel.getData());
+        place.setText(viewAllModel.getPlace());
+    }
+
+    private void loadPopularModelData() {
+        Glide.with(getApplicationContext())
+            .load(popularModel.getImg_url())
+            .into(detailedImg);
+        name.setText(popularModel.getName());
+        description.setText(popularModel.getDescription());
+        age.setText(popularModel.getAge());
+        date.setText(popularModel.getData());
+        place.setText(popularModel.getPlace());
+    }
+
+    private void loadPlaceModelData() {
+        detailedImg.setImageResource(placeModel.getImageResourceId());
+        name.setText(placeModel.getName());
+        description.setText(placeModel.getDescription());
     }
 }

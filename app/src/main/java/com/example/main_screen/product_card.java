@@ -104,5 +104,8 @@ public class product_card extends AppCompatActivity {
         detailedImg.setImageResource(placeModel.getImageResourceId());
         name.setText(placeModel.getName());
         description.setText(placeModel.getDescription());
+        age.setText(placeModel.getAge());
+        date.setText(placeModel.getData());
+        place.setText(placeModel.getPlace());
     }
 }

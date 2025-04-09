@@ -126,7 +126,7 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void askAIAndRespond(List<String> answers) {
-        String prompt = "На основе следующих ответов определи, к какой области склонен человек: IT, творчество или история. Напиши свой ответ одним словом. Ответы: " + answers;
+        String prompt = "На основе следующих ответов определи, к какой области склонен человек: IT, искусство или история. Напиши свой ответ одним словом. Ответы: " + answers;
         ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.execute(() -> {
             String response = chatGPT(prompt);
@@ -144,10 +144,10 @@ public class ChatActivity extends AppCompatActivity {
         response = response.toLowerCase();
         if (response.contains("it")) {
             category = "IT";
-        } else if (response.contains("творч")) {
-            category = "Творчество";
+        } else if (response.contains("искус")) {
+            category = "искусство";
         } else if (response.contains("истор")) {
-            category = "История";
+            category = "история";
         }
 
         if (!category.isEmpty() && userRef != null) {

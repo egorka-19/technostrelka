@@ -92,7 +92,6 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder> {
             extraContent = itemView.findViewById(R.id.extraContent);
             promo_btn = itemView.findViewById(R.id.promo_btn);
             imageView = itemView.findViewById(R.id.imageView);
-            button = itemView.findViewById(R.id.button);
             extraText = itemView.findViewById(R.id.extraText);
             numberText = itemView.findViewById(R.id.numberText);
             arrowImage = itemView.findViewById(R.id.arrowImage);

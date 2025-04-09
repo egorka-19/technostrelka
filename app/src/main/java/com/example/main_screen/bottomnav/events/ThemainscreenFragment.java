@@ -94,47 +94,27 @@ public class ThemainscreenFragment extends Fragment {
         View view = binding.getRoot();
         db = FirebaseFirestore.getInstance();
         popularRec = view.findViewById(R.id.pop_rec);
-        scrollView = view.findViewById(R.id.scroll_view);
         homeCatRec = view.findViewById(R.id.exp_rec);
         progressBar = view.findViewById(R.id.progressbar);
         phone = requireActivity().getIntent().getStringExtra("phone");
-        loadUserInfo();
-
 
         progressBar.setVisibility(VISIBLE);
-        scrollView.setVisibility(View.GONE);
 
-        popularRec.setLayoutManager(new GridLayoutManager(getContext(), 2));
-//        popularRec.setLayoutManager(new GridLayoutManager(getActivity(), RecyclerView.VERTICAL, false));
+        popularRec.setLayoutManager(new GridLayoutManager(getContext(), 1));
         popularModelList = new ArrayList<>();
         popularAdapters = new PopularAdapters(getActivity(), popularModelList);
         popularRec.setAdapter(popularAdapters);
 
-        db.collection("events")
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            for (QueryDocumentSnapshot document : task.getResult()) {
-                                PopularModel popularModel= document.toObject(PopularModel.class);
-                                popularModelList.add(popularModel);
-                                popularAdapters.notifyDataSetChanged();
-                                progressBar.setVisibility(View.GONE);
-                                scrollView.setVisibility(VISIBLE);
-                            }
-                        } else {
-                            System.out.println("Error" + task.getException());
-                            binding.welcomeText.setText("E " + task.getException());
-
-                            Toast.makeText(getActivity(), "Error" + task.getException(), Toast.LENGTH_LONG).show();
-                        }
-                    }
-                });
+        // Load all events initially
+        loadAllEvents();
 
         homeCatRec.setLayoutManager(new LinearLayoutManager(getActivity(), RecyclerView.HORIZONTAL, false));
         categoryList = new ArrayList<>();
-        homeAdapter = new HomeAdapter(getActivity(), categoryList);
+        
+        // Add "All" category as the first item
+        categoryList.add(new HomeCategory("Все", "all"));
+        
+        homeAdapter = new HomeAdapter(getActivity(), categoryList, this);
         homeCatRec.setAdapter(homeAdapter);
 
         db.collection("HomeCategory")
@@ -144,19 +124,16 @@ public class ThemainscreenFragment extends Fragment {
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
                         if (task.isSuccessful()) {
                             for (QueryDocumentSnapshot document : task.getResult()) {
-                                HomeCategory homeCategory= document.toObject(HomeCategory.class);
+                                HomeCategory homeCategory = document.toObject(HomeCategory.class);
                                 categoryList.add(homeCategory);
                                 homeAdapter.notifyDataSetChanged();
                             }
                         } else {
                             System.out.println("Error" + task.getException());
-                            binding.welcomeText.setText("E " + task.getException());
-
                             Toast.makeText(getActivity(), "Error" + task.getException(), Toast.LENGTH_LONG).show();
                         }
                     }
                 });
-
 
         ActivityResultLauncher<Intent> pickImageActivityResultLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
@@ -172,12 +149,11 @@ public class ThemainscreenFragment extends Fragment {
                                                 requireContext().getContentResolver(),
                                                 filePath
                                         );
-                                binding.avatarIv.setImageBitmap(bitmap);
                             }catch(IOException e){
                                 e.printStackTrace();
                             }
 
-                            uploadImage();
+
                         }
                     }
                 }
@@ -189,7 +165,7 @@ public class ThemainscreenFragment extends Fragment {
         search_box = view.findViewById(R.id.serach_box);
         viewAllModelList = new ArrayList<>();
         viewAllAdapters = new ViewAllAdapters(getContext(), viewAllModelList);
-        recyclerViewSearch.setLayoutManager(new GridLayoutManager(getContext(), 2));
+        recyclerViewSearch.setLayoutManager(new GridLayoutManager(getContext(), 1));
         recyclerViewSearch.setAdapter(viewAllAdapters);
         recyclerViewSearch.setHasFixedSize(true);
         search_box.addTextChangedListener(new TextWatcher() {
@@ -223,105 +199,99 @@ public class ThemainscreenFragment extends Fragment {
         return view;
     }
 
-    private void searchProduct(String type) {
-        if (!type.isEmpty()){
-            db.collection("events").whereEqualTo("type", type).get()
-                    .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                        @Override
-                        public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                            if (task.isSuccessful() && task.getResult() != null){
-                                viewAllModelList.clear();
-                                viewAllAdapters.notifyDataSetChanged();
-                                for (DocumentSnapshot doc : task.getResult().getDocuments()){
-                                    ViewAllModel viewAllModel = doc.toObject(ViewAllModel.class);
-                                    viewAllModelList.add(viewAllModel);
-                                    viewAllAdapters.notifyDataSetChanged();
-                                }
-                                popularRec.setVisibility(INVISIBLE);
-                                homeCatRec.setVisibility(INVISIBLE);
-                            }
-                        }
-                    });
-        }if (type.isEmpty()){
-            popularRec.setVisibility(VISIBLE);
-            homeCatRec.setVisibility(VISIBLE);
-        }
-
-
-    }
-
-    private void loadUserInfo() {
-        FirebaseDatabase.getInstance().getReference().child("Users").child(FirebaseAuth.getInstance().getCurrentUser().getUid())
-                .addListenerForSingleValueEvent(new ValueEventListener() {
+    private void loadAllEvents() {
+        db.collection("events")
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        if (snapshot.exists()) {
-                            String profileImage = snapshot.child("profileImage").getValue().toString();
-
-                            if (!profileImage.isEmpty()) {
-                                // Очищаем кеш Glide перед загрузкой нового изображения
-                                Glide.with(getContext())
-                                        .load(profileImage)
-                                        .placeholder(R.drawable.loggg)
-                                        .skipMemoryCache(true)  // Пропускаем кеш памяти
-                                        .into(binding.avatarIv);
-                            } else {
-                                Toast.makeText(getContext(), "Загрузите свое фото!", Toast.LENGTH_SHORT).show();
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            popularModelList.clear();
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                PopularModel popularModel = document.toObject(PopularModel.class);
+                                popularModelList.add(popularModel);
                             }
+                            popularAdapters.notifyDataSetChanged();
+                            progressBar.setVisibility(View.GONE);
+                        } else {
+                            System.out.println("Error" + task.getException());
+                            Toast.makeText(getActivity(), "Error" + task.getException(), Toast.LENGTH_LONG).show();
                         }
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-                        // Обработка ошибок базы данных
                     }
                 });
     }
 
+    public void showAllItems() {
+        loadAllEvents();
+    }
 
+    public void filterItemsByCategory(String categoryType) {
+        db.collection("events")
+                .whereEqualTo("type", categoryType)
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            popularModelList.clear();
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                PopularModel popularModel = document.toObject(PopularModel.class);
+                                popularModelList.add(popularModel);
+                            }
+                            popularAdapters.notifyDataSetChanged();
+                        } else {
+                            System.out.println("Error" + task.getException());
+                            Toast.makeText(getActivity(), "Error" + task.getException(), Toast.LENGTH_LONG).show();
+                        }
+                    }
+                });
+    }
 
-//    private void setPublishRecycler() {
-//        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext(), RecyclerView.HORIZONTAL, false);
-//        recyclepublish = binding.recyclepublish;
-//        recyclepublish.setLayoutManager(layoutManager);
-//
-//        PublishAdapter publishAdapter = new PublishAdapter(getContext(), PublishList);
-//        recyclepublish.setAdapter(publishAdapter);
-//    }
-
-
-
-    private void uploadImage(){
-        if (filePath != null) {
-            // Загрузка изображения в Firebase Storage
-            FirebaseStorage.getInstance().getReference().child("Product Images/" + phone)
-                    .putFile(filePath).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+    private void searchProduct(String type) {
+        if (!type.isEmpty()) {
+            // Show search results
+            db.collection("events")
+                    .whereEqualTo("type", type)
+                    .get()
+                    .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                         @Override
-                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                            Toast.makeText(getContext(), "Фото загружено успешно", Toast.LENGTH_SHORT).show();
-
-                            // Получаем URL загруженного изображения
-                            FirebaseStorage.getInstance().getReference().child("Product Images/" + phone).getDownloadUrl()
-                                    .addOnSuccessListener(new OnSuccessListener<Uri>() {
-                                        @Override
-                                        public void onSuccess(Uri uri) {
-                                            // Обновляем URL изображения в базе данных
-                                            FirebaseDatabase.getInstance().getReference().child("Users").child(phone)
-                                                    .child("profileImage").setValue(uri.toString())
-                                                    .addOnCompleteListener(task -> {
-                                                        if (task.isSuccessful()) {
-                                                            // Очищаем кеш Glide для обновления изображения
-                                                            Glide.with(getContext())
-                                                                    .load(uri)
-                                                                    .placeholder(R.drawable.down_splash_citek)
-                                                                    .skipMemoryCache(true)  // Пропускаем кеш памяти
-                                                                    .into(binding.avatarIv);
-                                                        }
-                                                    });
-                                        }
-                                    });
+                        public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                            if (task.isSuccessful() && task.getResult() != null) {
+                                viewAllModelList.clear();
+                                for (DocumentSnapshot doc : task.getResult().getDocuments()) {
+                                    ViewAllModel viewAllModel = doc.toObject(ViewAllModel.class);
+                                    viewAllModelList.add(viewAllModel);
+                                }
+                                viewAllAdapters.notifyDataSetChanged();
+                                
+                                // Hide category and popular items, show search results
+                                popularRec.setVisibility(INVISIBLE);
+                                homeCatRec.setVisibility(INVISIBLE);
+                                recyclerViewSearch.setVisibility(VISIBLE);
+                            }
                         }
                     });
+        } else {
+            // When search is cleared
+            viewAllModelList.clear();
+            viewAllAdapters.notifyDataSetChanged();
+            recyclerViewSearch.setVisibility(INVISIBLE);
+            
+            // Show category and popular items based on selected category
+            popularRec.setVisibility(VISIBLE);
+            homeCatRec.setVisibility(VISIBLE);
+            
+            // Reload items based on current category selection
+            if (homeAdapter != null && homeAdapter.getSelectedPosition() == 0) {
+                // If "All" is selected
+                loadAllEvents();
+            } else if (homeAdapter != null && categoryList != null && homeAdapter.getSelectedPosition() < categoryList.size()) {
+                // If specific category is selected
+                filterItemsByCategory(categoryList.get(homeAdapter.getSelectedPosition()).getType());
+            }
         }
     }
+
+
+
 }

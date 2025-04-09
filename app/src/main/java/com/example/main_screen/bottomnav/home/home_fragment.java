@@ -63,28 +63,60 @@ public class home_fragment extends Fragment {
     // Инициализация данных о местах
     private void initPlacesInfo() {
         // Театры
-        placesInfo.put("56.325716,44.004898", 
-            new PlaceModel("Театр драмы", "Нижегородский государственный академический театр драмы им. М. Горького", R.drawable.location_pin, "Театр"));
-        placesInfo.put("56.333123,43.902013", 
-            new PlaceModel("Театр оперы", "Нижегородский государственный академический театр оперы и балета", R.drawable.location_pin, "Театр"));
-        placesInfo.put("56.324411,44.003085", 
-            new PlaceModel("Театр кукол", "Нижегородский государственный театр кукол", R.drawable.location_pin, "Театр"));
+        placesInfo.put("56.324128,44.001458",
+                new PlaceModel("Театр драмы", "Нижегородский государственный академический театр драмы им. М. Горького", R.drawable.location_pin, "Театр"));
+        placesInfo.put("56.315830,44.016955",
+                new PlaceModel("Театр оперы", "Нижегородский государственный академический театр оперы и балета", R.drawable.location_pin, "Театр"));
+        placesInfo.put("56.318407,43.995999",
+                new PlaceModel("Театр кукол", "Нижегородский государственный театр кукол", R.drawable.location_pin, "Театр"));
+        placesInfo.put("56.316545,44.010511",
+                new PlaceModel("Театр юного зрителя", "Нижегородский театр юного зрителя", R.drawable.location_pin, "Театр"));
+        placesInfo.put("56.320387,44.002252",
+                new PlaceModel("Театр комедии", "Нижегородский театр комедии", R.drawable.location_pin, "Театр"));
 
         // Парки
-        placesInfo.put("56.334274,43.854942", 
-            new PlaceModel("Парк Победы", "Парк культуры и отдыха в Нижнем Новгороде", R.drawable.green_pin, "Парк"));
-        placesInfo.put("56.329333,44.016239", 
-            new PlaceModel("Парк Швейцария", "Крупнейший парк в Нижнем Новгороде", R.drawable.green_pin, "Парк"));
-        placesInfo.put("56.329576,44.009824", 
-            new PlaceModel("Парк Кулибина", "Парк имени И.П. Кулибина", R.drawable.green_pin, "Парк"));
+        placesInfo.put("56.327844,44.035364",
+                new PlaceModel("Парк Победы", "Парк культуры и отдыха в Нижнем Новгороде", R.drawable.green_pin, "Парк"));
+        placesInfo.put("56.274489,43.973353",
+                new PlaceModel("Парк Швейцария", "Крупнейший парк в Нижнем Новгороде", R.drawable.green_pin, "Парк"));
+        placesInfo.put("56.315192,44.008244",
+                new PlaceModel("Парк Кулибина", "Парк имени И.П. Кулибина", R.drawable.green_pin, "Парк"));
+        placesInfo.put("56.311604,43.935067",
+                new PlaceModel("Парк 1 Мая", "Парк культуры и отдыха 1 Мая", R.drawable.green_pin, "Парк"));
+        placesInfo.put("56.268348,43.919829",
+                new PlaceModel("Парк Дубки", "Парк Дубки с вековыми дубами", R.drawable.green_pin, "Парк"));
+        placesInfo.put("56.339099,43.857030",
+                new PlaceModel("Парк Сормовский", "Сормовский парк культуры и отдыха", R.drawable.green_pin, "Парк"));
 
         // Музеи
-        placesInfo.put("56.320417,43.946482", 
-            new PlaceModel("Художественный музей", "Нижегородский государственный художественный музей", R.drawable.blue_pin, "Музей"));
-        placesInfo.put("56.318164,43.995279", 
-            new PlaceModel("Музей истории", "Музей истории города Нижнего Новгорода", R.drawable.blue_pin, "Музей"));
-        placesInfo.put("56.328139,44.006500", 
-            new PlaceModel("Музей науки", "Музей науки и техники", R.drawable.blue_pin, "Музей"));
+        placesInfo.put("56.324340,43.882085",
+                new PlaceModel("Художественный музей", "Нижегородский государственный художественный музей", R.drawable.blue_pin, "Музей"));
+        placesInfo.put("56.255355,43.894809",
+                new PlaceModel("Музей истории", "Музей истории города Нижнего Новгорода", R.drawable.blue_pin, "Музей"));
+        placesInfo.put("56.320417,43.946482",
+                new PlaceModel("Музей науки", "Музей науки и техники", R.drawable.blue_pin, "Музей"));
+        placesInfo.put("56.322769,44.018617",
+                new PlaceModel("Музей Горького", "Музей-квартира А.М. Горького", R.drawable.blue_pin, "Музей"));
+        placesInfo.put("56.322736,43.998282",
+                new PlaceModel("Музей Добролюбова", "Музей Н.А. Добролюбова", R.drawable.blue_pin, "Музей"));
+        placesInfo.put("56.327350,44.017002",
+                new PlaceModel("Музей речного флота", "Музей истории речного флота", R.drawable.blue_pin, "Музей"));
+
+        // Достопримечательности
+        placesInfo.put("56.328624,44.002842",
+                new PlaceModel("Кремль", "Нижегородский кремль - исторический центр города", R.drawable.location_pin, "Локация"));
+        placesInfo.put("56.330872,44.009461",
+                new PlaceModel("Чкаловская лестница", "Знаменитая лестница с видом на Волгу", R.drawable.location_pin, "Локация"));
+        placesInfo.put("56.317088,43.994829",
+                new PlaceModel("Покровка", "Главная пешеходная улица города", R.drawable.location_pin, "Локация"));
+        placesInfo.put("56.327306,43.984992",
+                new PlaceModel("Рождественская церковь", "Церковь Рождества Иоанна Предтечи", R.drawable.location_pin, "Локация"));
+        placesInfo.put("56.357886,43.869049",
+                new PlaceModel("Собор Александра Невского", "Кафедральный собор Александра Невского", R.drawable.location_pin, "Локация"));
+
+        // Кафе и рестораны
+        placesInfo.put("56.177811,44.177048",
+                new PlaceModel("Ресторан Волга", "Ресторан с панорамным видом на реку", R.drawable.yellow_pin, "Ресторан"));
     }
 
     MapObjectTapListener mapObjectTapListener = new MapObjectTapListener() {
@@ -94,9 +126,9 @@ public class home_fragment extends Fragment {
                 PlacemarkMapObject placemark = (PlacemarkMapObject) mapObject;
                 Point geometry = placemark.getGeometry();
                 String key = String.format(Locale.US, "%.6f,%.6f", geometry.getLatitude(), geometry.getLongitude());
-                
+
                 PlaceModel placeInfo = placesInfo.get(key);
-                
+
                 if (placeInfo != null && getActivity() != null) {
                     Intent intent = new Intent(getActivity(), product_card.class);
                     intent.putExtra("detail", placeInfo);
@@ -111,18 +143,18 @@ public class home_fragment extends Fragment {
         try {
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
             View dialogView = getLayoutInflater().inflate(R.layout.place_info_dialog, null);
-            
+
             ImageView imageView = dialogView.findViewById(R.id.place_image);
             TextView titleView = dialogView.findViewById(R.id.place_title);
             TextView descriptionView = dialogView.findViewById(R.id.place_description);
-            
+
             imageView.setImageResource(info.getImageResourceId());
             titleView.setText(info.getName());
             descriptionView.setText(info.getDescription());
-            
+
             builder.setView(dialogView)
-                   .setPositiveButton("Закрыть", null);
-            
+                    .setPositiveButton("Закрыть", null);
+
             AlertDialog dialog = builder.create();
             dialog.show();
             Log.d("Dialog", "Диалог успешно показан");
@@ -173,6 +205,8 @@ public class home_fragment extends Fragment {
         categoryList.add(new CategoryModel("Музеи", "Музей"));
         categoryList.add(new CategoryModel("Театры", "Театр"));
         categoryList.add(new CategoryModel("Парки", "Парк"));
+        categoryList.add(new CategoryModel("Локации", "Локация"));
+        categoryList.add(new CategoryModel("Рестораны", "Ресторан"));
 
         // Инициализация адаптера
         categoryAdapter = new CategoryAdapter(getContext(), categoryList, new CategoryAdapter.OnCategoryClickListener() {
@@ -236,6 +270,10 @@ public class home_fragment extends Fragment {
                 addTheaterMarkers();
             } else if (selectedType.equals("Парк")) {
                 addParkMarkers();
+            } else if (selectedType.equals("Локация")) {
+                addLocationMarkers();
+            } else if (selectedType.equals("Ресторан")) {
+                addRestaurantMarkers();
             }
         }
     }
@@ -244,6 +282,8 @@ public class home_fragment extends Fragment {
         addMuseumMarkers();
         addTheaterMarkers();
         addParkMarkers();
+        addLocationMarkers();
+        addRestaurantMarkers();
     }
 
     private void addMuseumMarkers() {
@@ -276,6 +316,32 @@ public class home_fragment extends Fragment {
         ImageProvider imageProvider = ImageProvider.fromResource(home_fragment.this.getActivity(), R.drawable.green_pin);
         for (Map.Entry<String, PlaceModel> entry : placesInfo.entrySet()) {
             if (entry.getValue().getType().equals("Парк")) {
+                String[] coords = entry.getKey().split(",");
+                Point point = new Point(Double.parseDouble(coords[0]), Double.parseDouble(coords[1]));
+                PlacemarkMapObject placemark = mapView.getMapWindow().getMap().getMapObjects().addPlacemark(point, imageProvider);
+                placemark.setIconStyle(new IconStyle().setScale(0.1f));
+                placemark.addTapListener(mapObjectTapListener);
+            }
+        }
+    }
+
+    private void addLocationMarkers() {
+        ImageProvider imageProvider = ImageProvider.fromResource(home_fragment.this.getActivity(), R.drawable.yellow_pin);
+        for (Map.Entry<String, PlaceModel> entry : placesInfo.entrySet()) {
+            if (entry.getValue().getType().equals("Локация")) {
+                String[] coords = entry.getKey().split(",");
+                Point point = new Point(Double.parseDouble(coords[0]), Double.parseDouble(coords[1]));
+                PlacemarkMapObject placemark = mapView.getMapWindow().getMap().getMapObjects().addPlacemark(point, imageProvider);
+                placemark.setIconStyle(new IconStyle().setScale(0.1f));
+                placemark.addTapListener(mapObjectTapListener);
+            }
+        }
+    }
+
+    private void addRestaurantMarkers() {
+        ImageProvider imageProvider = ImageProvider.fromResource(home_fragment.this.getActivity(), R.drawable.location_pin);
+        for (Map.Entry<String, PlaceModel> entry : placesInfo.entrySet()) {
+            if (entry.getValue().getType().equals("Ресторан")) {
                 String[] coords = entry.getKey().split(",");
                 Point point = new Point(Double.parseDouble(coords[0]), Double.parseDouble(coords[1]));
                 PlacemarkMapObject placemark = mapView.getMapWindow().getMap().getMapObjects().addPlacemark(point, imageProvider);

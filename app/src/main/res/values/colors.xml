@@ -11,4 +11,6 @@
     <color name="grey">#F8F7F9</color>
     <color name="light_blue">#B3CFFF</color>
     <color name="light_purple">#E8CFFF</color>
+    <color name="violet">#9000FF</color>
+    <color name="fon">#F4F4F4</color>
 </resources>

@@ -4,130 +4,89 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/light"
-    android:backgroundTint="#F0F4F9"
+    android:background="@color/fon"
+    android:backgroundTint="#FFFFFF"
     tools:context=".LoginActivity">
 
-    <ImageView
-        android:id="@+id/imageView8"
-        android:layout_width="345dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="40dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/login_title"
-        app:srcCompat="@drawable/email_et" />
-
-    <ImageView
-        android:id="@+id/imageView17"
-        android:layout_width="345dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="30dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imageView8"
-        app:srcCompat="@drawable/email_et" />
-
-    <TextView
-        android:id="@+id/login_title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:fontFamily="@font/sfprodisplay1semibold"
-        android:text="Вход"
-
-        android:textColor="@color/black"
-        android:textSize="28sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imageView18" />
-
-    <EditText
-        android:id="@+id/email_Et"
-        android:layout_width="340dp"
-        android:layout_height="45dp"
-        android:backgroundTint="@android:color/transparent"
-        android:fontFamily="@font/sfprodisplay1medium"
-        android:hint="Почта"
-        android:textColor="@color/black"
-        app:layout_constraintBottom_toBottomOf="@+id/imageView8"
-        app:layout_constraintEnd_toEndOf="@+id/imageView8"
-        app:layout_constraintStart_toStartOf="@+id/imageView8"
-        app:layout_constraintTop_toTopOf="@+id/imageView8" />
-
-    <EditText
-        android:id="@+id/password_Et"
-        android:layout_width="340dp"
-        android:layout_height="45dp"
-        android:backgroundTint="@android:color/transparent"
-        android:fontFamily="@font/sfprodisplay1medium"
-        android:hint="Пароль"
-        android:inputType="number|numberPassword"
-        android:textColor="@color/black"
-        app:layout_constraintBottom_toBottomOf="@+id/imageView17"
-        app:layout_constraintEnd_toEndOf="@+id/imageView17"
-        app:layout_constraintStart_toStartOf="@+id/imageView17"
-        app:layout_constraintTop_toTopOf="@+id/imageView17" />
-
-    <Button
-        android:id="@+id/btn_sign"
-        android:layout_width="345dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="155dp"
-        android:layout_marginBottom="150dp"
-        android:backgroundTint="@color/black"
-        android:fontFamily="@font/sfprodisplay1medium"
-        android:text="Войти"
-        android:textSize="16sp"
-        app:cornerRadius="12dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/email_Et" />
-
     <LinearLayout
+        android:id="@+id/linearLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
         android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btn_sign">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/sfprodisplay1medium"
-            android:text="Еще нет аккаунта?"
-            android:textColor="@color/black"
-            android:textSize="16sp">
-
-        </TextView>
-
-        <Button
-            android:id="@+id/minibackBtn"
-            android:layout_width="wrap_content"
-            android:layout_height="50dp"
-            android:layout_weight="1"
-            android:backgroundTint="@android:color/transparent"
-            android:fontFamily="@font/sfprodisplay1medium"
-            android:text="Зарегистрироваться"
-            android:textColor="@android:color/holo_red_light"
-            android:textSize="16sp" />
-
-    </LinearLayout>
+        app:layout_constraintStart_toStartOf="parent" />
 
     <ImageView
-        android:id="@+id/imageView18"
-        android:layout_width="200dp"
-        android:layout_height="160dp"
-        android:layout_marginTop="50dp"
-        android:scaleType="centerCrop"
+        android:id="@+id/nn"
+        android:layout_width="368dp"
+        android:layout_height="71dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.627"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/logo_login" />
+        app:layout_constraintVertical_bias="0.065"
+        app:srcCompat="@drawable/text_exit" />
+
+    <ImageButton
+        android:id="@+id/minibackBtn"
+        android:layout_width="292dp"
+        android:layout_height="18dp"
+        android:layout_marginBottom="60dp"
+        android:background="@android:color/transparent"
+        android:scaleType="fitXY"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.495"
+        app:layout_constraintStart_toStartOf="parent"
+        app:srcCompat="@drawable/minibackreg" />
+
+    <EditText
+        android:id="@+id/email_Et"
+        android:layout_width="348dp"
+        android:layout_height="57dp"
+        android:layout_marginTop="40dp"
+        android:background="@drawable/edittext_rounded_corners"
+        android:backgroundTint="#E9E8EE"
+        android:ems="10"
+        android:fontFamily="@font/rostelecombasis_medium"
+        android:hint="Почта"
+        android:inputType="textEmailAddress"
+        android:paddingStart="18dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.507"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/nn" />
+
+    <EditText
+        android:id="@+id/password_Et"
+        android:layout_width="348dp"
+        android:layout_height="57dp"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/edittext_rounded_corners"
+        android:ems="10"
+        android:hint="Пароль"
+        android:inputType="textPassword"
+        android:paddingStart="18dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.507"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/email_Et" />
+
+    <ImageButton
+        android:id="@+id/btnSign"
+        android:layout_width="349dp"
+        android:layout_height="52dp"
+        android:layout_marginBottom="16dp"
+        android:background="@android:color/transparent"
+        android:scaleType="fitXY"
+        app:layout_constraintBottom_toTopOf="@+id/minibackBtn"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/password_Et"
+        app:layout_constraintVertical_bias="1.0"
+        app:srcCompat="@drawable/btnsign" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 

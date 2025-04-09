@@ -22,9 +22,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.example.main_screen.LoginActivity;
-import com.example.main_screen.R;
-import com.example.main_screen.RegisterActivity;
 import com.example.main_screen.Settings_Activity;
 import com.example.main_screen.databinding.FragmentProfileBinding;
 import com.example.main_screen.favourite;
@@ -41,10 +38,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import adapter.NewsAdapter;
-import adapter.PublishAdapter;
-import model.Newss;
-import model.publish;
+import com.example.main_screen.adapter.PublishAdapter;
+
+import com.example.main_screen.model.publish;
 
 public class ProfileFragment extends Fragment {
     private FragmentProfileBinding binding;

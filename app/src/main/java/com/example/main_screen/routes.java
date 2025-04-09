@@ -15,7 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
 import java.util.List;
 
-import adapter.ItemAdapter;
+import com.example.main_screen.adapter.ItemAdapter;
 
 public class routes extends AppCompatActivity {
     MediaPlayer mediaPlayer;

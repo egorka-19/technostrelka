@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="8dp"
+    android:layout_marginTop="8dp"
+    android:layout_marginEnd="8dp"
+    android:layout_marginBottom="16dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="0dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="8dp">
+
+        <!-- Картинка товара с закруглёнными углами -->
+        <com.makeramen.roundedimageview.RoundedImageView
+            android:id="@+id/pop_img"
+            android:layout_width="350dp"
+            android:layout_height="120dp"
+            android:src="@drawable/izo"
+            android:scaleType="centerCrop"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:riv_corner_radius="14dp" />
+
+        <!-- Сердечко в правом верхнем углу -->
+        <ImageView
+            android:id="@+id/favorite_icon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_margin="8dp"
+            android:src="@drawable/health"
+            app:layout_constraintTop_toTopOf="@id/pop_img"
+            app:layout_constraintEnd_toEndOf="@id/pop_img" />
+
+        <!-- Название и рейтинг -->
+        <TextView
+            android:id="@+id/pop_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="17dp"
+            android:layout_marginTop="4dp"
+            android:text="Название события"
+            android:textSize="21sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/pop_img" />
+
+        <!-- Краткая информация -->
+        <TextView
+            android:id="@+id/item_description"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="17dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginTop="4dp"
+            android:text="Краткое описание мероприятия"
+            android:textSize="16sp"
+            android:maxLines="3"
+            app:layout_constraintTop_toBottomOf="@id/pop_name"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- Кнопка с адресом -->
+        <TextView
+            android:id="@+id/address_button"
+            android:layout_width="350dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="12dp"
+            android:padding="4dp"
+            android:background="@drawable/describe_but"
+            android:textSize="14sp"
+            android:gravity="center"
+            android:textColor="@android:color/white"
+            app:layout_constraintTop_toBottomOf="@id/item_description"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>

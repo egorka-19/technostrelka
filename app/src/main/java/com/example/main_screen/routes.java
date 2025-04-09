@@ -1,103 +1,120 @@
 package com.example.main_screen;
 
 import android.content.Intent;
-import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
-
+import android.widget.TextView;
+import android.widget.Toast;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import com.example.main_screen.adapter.ArtObjectAdapter;
+import com.example.main_screen.data.ArtObjectsData;
+import com.example.main_screen.data.HistoryObjectsData;
+import com.example.main_screen.data.ITObjectsData;
+import com.example.main_screen.model.ArtObject;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.example.main_screen.adapter.ItemAdapter;
-
-public class routes extends AppCompatActivity {
-    MediaPlayer mediaPlayer;
-    ImageButton button, pause_button, back_button;
-    boolean flag;
-
-    private void stopMusic() {
-        mediaPlayer.release();
-        mediaPlayer = null;
-    }
+public class routes extends AppCompatActivity implements ArtObjectAdapter.OnArtObjectClickListener {
+    private DatabaseReference userRef;
+    private String userCategory;
+    private RecyclerView recyclerView;
+    private ArtObjectAdapter adapter;
+    private List<ArtObject> artObjects;
+    private TextView titleTextView;
+    private ImageButton backButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_routes);
-        mediaPlayer = null;
-        button = findViewById(R.id.button);
-        pause_button = findViewById(R.id.pause_button);
-        back_button = findViewById(R.id.back_button);
-        pause_button.setVisibility(View.INVISIBLE);
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                button.setVisibility(View.INVISIBLE);
-                pause_button.setVisibility(View.VISIBLE);
-                if (v.getId() == R.id.button) {
-                    // Check if mediaPlayer is null. If true, we'll instantiate the MediaPlayer object
-                    if (mediaPlayer == null) {
-                        mediaPlayer = MediaPlayer.create(v.getContext(), R.raw.music);
-                    }
-                    // Then, register OnCompletionListener that calls a user supplied callback method onCompletion() when
-                    // looping mode was set to false to indicate playback is completed.
-                    mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                        @Override
-                        public void onCompletion(MediaPlayer mediaPlayer) {
-                            // Here, call a method to release the MediaPlayer object and to set it to null.
-                            stopMusic();
-                        }
-                    });
-                    // Next, call start() method on mediaPlayer to start playing the music.
-                    mediaPlayer.start();
-                }
-            }
-        });
-        pause_button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                button.setVisibility(View.VISIBLE);
-                pause_button.setVisibility(View.INVISIBLE);
-                if (v.getId() == R.id.pause_button) {
-                    // Check if mediaPlayer is null. If true, we'll instantiate the MediaPlayer object
-                    if (mediaPlayer != null) {
-                        // Here, call pause() method on mediaPlayer to pause the music.
-                        mediaPlayer.pause();
-                    }
-                }
-            }
-        });
-        back_button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(routes.this, MainActivity.class));
-            }
-        });
+        
+        backButton = findViewById(R.id.back_button);
+        titleTextView = findViewById(R.id.textView);
+        recyclerView = findViewById(R.id.recyclerView);
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
-
-        RecyclerView recyclerView = findViewById(R.id.recyclerView);
+        artObjects = new ArrayList<>();
+        adapter = new ArtObjectAdapter(this, artObjects, this);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        List<ItemData> itemsData = new ArrayList<>();
-        itemsData.add(new ItemData("Начало экскурсии", R.drawable.one, "Дорогие гости, Вы приехали в столицу Удмуртской Республики - город Ижевск. В самом начале это был всего лишь рабочий поселок с железоделательным заводом, постепенно город развивался в промышленном направлении, здесь начали производить оружие, благодаря которому город стал известен на всю Россию. Сейчас же население его составляет около 600 тысяч человек, и Ижевск входит в двадцать крупнейших городов России."));
-        itemsData.add(new ItemData("Ж/Д вокзал", R.drawable.two, "Вы приехали на железнодорожный вокзал города Ижевска, первое название вокзала – Казанский и был он построен в годы первой мировой войны. Раньше это было обычное деревянное здание, ничем не напоминающее вокзал, сейчас же это современное здание, которое принимает поезда со всей России. А пока мы подъезжаем к следующей остановке."));
-        itemsData.add(new ItemData("Завод мин.вод", R.drawable.three, "В 1949 году возле железнодорожного вокзала бурили скважину, чтобы обеспечивать водой паровозы и сам вокзал. Но из скважины неожиданно для всех пошла минеральная вода. Эта скважина получила в дальнейшем название \"Ново-Ижевский источник минеральных лечебных вод\" и стала отправной точкой для создания Ижевского завода минерально-фруктовых вод."));
-        itemsData.add(new ItemData("Ресторан Кинза", R.drawable.five, "Первый раз люди приходят в Кинзу попробовать знаменитые Хинкали и Хачапури по-аджарски, так и происходит наше первое знакомство с гостями. Затем, люди возвращаются не только за вкусными хинкали с бульоном,но и за атмосферой Грузии, за качественными сервисом и уютной остановкой. Они приходят целыми семьями, ведь мы позаботились о комфорте каждого и сделали игровые комнаты и отдельное меню для детей."));
-        itemsData.add(new ItemData("ул.Гагарина", R.drawable.four, "Улица Гагарина носит имя первого человека, полетевшего в космос – Юрия Гагарина. Любопытно, что в Ижевске целых 217 улиц названы в честь известных людей. Причем, 210 из них - это мужчины и только 7 – женщины. Например, улица Кузебая Герда, это псевдоним Кузьмы Чайникова, основоположника удмуртской детской литературы. Им были опубликованы более 80 стихов и около 40 рассказов на удмуртском языке."));
-        ItemAdapter adapter = new ItemAdapter(itemsData);
         recyclerView.setAdapter(adapter);
 
+        // Get current user's reference
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            userRef = FirebaseDatabase.getInstance().getReference()
+                    .child("Users")
+                    .child(currentUser.getUid());
+            
+            // Load user's category
+            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    userCategory = dataSnapshot.child("category_user").getValue(String.class);
+                    if (userCategory != null && !userCategory.isEmpty()) {
+                        loadArtObjects();
+                    } else {
+                        Toast.makeText(routes.this, "Категория не выбрана", Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+                    Toast.makeText(routes.this, "Ошибка загрузки данных", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        backButton.setOnClickListener(v -> finish());
     }
 
+    private void loadArtObjects() {
+        artObjects.clear();
+        
+        if (userCategory != null) {
+            switch (userCategory.toLowerCase()) {
+                case "it":
+                    titleTextView.setText("IT-маршрут по городу");
+                    artObjects.addAll(ITObjectsData.getITObjects());
+                    break;
+                case "искусство":
+                case "творчество":
+                    titleTextView.setText("Арт-маршрут по городу");
+                    artObjects.addAll(ArtObjectsData.getArtObjects());
+                    break;
+                case "история":
+                    titleTextView.setText("Исторический маршрут по городу");
+                    artObjects.addAll(HistoryObjectsData.getHistoryObjects());
+                    break;
+                default:
+                    titleTextView.setText("Маршрут по городу");
+                    artObjects.addAll(ArtObjectsData.getArtObjects());
+                    break;
+            }
+        }
+        
+        adapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void onArtObjectClick(ArtObject artObject) {
+        // TODO: Implement navigation to art object details
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (adapter != null) {
+            adapter.stopPlayback();
+        }
+    }
 }

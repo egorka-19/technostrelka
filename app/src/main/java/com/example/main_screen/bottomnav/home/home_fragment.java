@@ -9,6 +9,8 @@ import android.view.ViewGroup;
 import android.app.AlertDialog;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 
 import com.example.main_screen.CoursePage;
 import com.example.main_screen.R;
@@ -37,14 +39,23 @@ import com.yandex.runtime.image.ImageProvider;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import com.example.main_screen.adapter.CategoryAdapter;
+import com.example.main_screen.model.CategoryModel;
 
 public class home_fragment extends Fragment {
 
     private MapView mapView;
     private FragmentHomeBinding binding;
     private MapObjectCollection mapObjects;
+    private RecyclerView categoriesRecycler;
+    private CategoryAdapter categoryAdapter;
+    private List<CategoryModel> categoryList;
+    private boolean showAllMarkers = true;
 
     // Map для хранения информации о местах
     private Map<String, PlaceModel> placesInfo = new HashMap<>();
@@ -152,17 +163,39 @@ public class home_fragment extends Fragment {
         mapView = fragment_home.findViewById(R.id.mapView);
         MapKitFactory.initialize(home_fragment.this.getActivity());
 
+        // Инициализация RecyclerView
+        categoriesRecycler = fragment_home.findViewById(R.id.categories_recycler);
+        categoriesRecycler.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+
+        // Инициализация списка категорий
+        categoryList = new ArrayList<>();
+        categoryList.add(new CategoryModel("Все", "all"));
+        categoryList.add(new CategoryModel("Музеи", "Музей"));
+        categoryList.add(new CategoryModel("Театры", "Театр"));
+        categoryList.add(new CategoryModel("Парки", "Парк"));
+
+        // Инициализация адаптера
+        categoryAdapter = new CategoryAdapter(getContext(), categoryList, new CategoryAdapter.OnCategoryClickListener() {
+            @Override
+            public void onCategoryClick(int position, String categoryType) {
+                if (categoryType.equals("all")) {
+                    showAllMarkers = true;
+                } else {
+                    showAllMarkers = false;
+                }
+                updatePlacemarkMapObjectVisibility();
+            }
+        });
+
+        categoriesRecycler.setAdapter(categoryAdapter);
+
         // Инициализация информации о местах
         initPlacesInfo();
 
         // Добавляем все метки на карту
-        ArrayList<Integer> allCheckBoxes = new ArrayList<>();
-        allCheckBoxes.add(R.id.checkBoxParks);
-        allCheckBoxes.add(R.id.checkBoxTheaters);
-        allCheckBoxes.add(R.id.checkBoxMuseums);
-        updatePlacemarkMapObjectVisibility(allCheckBoxes);
+        updatePlacemarkMapObjectVisibility();
 
-        // And to show what can be done with it, we move the camera to the center of the target location.
+        // Устанавливаем начальную позицию камеры
         if (mapView != null) {
             mapView.getMapWindow().getMap().move(
                     new CameraPosition(new Point(56.326797, 44.006516), 14.0f, 0.0f, 0.0f),
@@ -186,68 +219,76 @@ public class home_fragment extends Fragment {
         MapKitFactory.getInstance().onStart();
         mapView.onStart();
     }
-    public void updatePlacemarkMapObjectVisibility(ArrayList<Integer> selectedCheckBoxIds) {
+
+    public void updatePlacemarkMapObjectVisibility() {
         // Очищаем все существующие метки
         mapView.getMapWindow().getMap().getMapObjects().clear();
 
-        if (selectedCheckBoxIds.contains(R.id.checkBoxParks)) {
-            ImageProvider imageProvider_2 = ImageProvider.fromResource(home_fragment.this.getActivity(), R.drawable.green_pin);
-            Point mappoint_4= new Point(56.334274, 43.854942);
-            PlacemarkMapObject placemark_4 = mapView.getMapWindow().getMap().getMapObjects().addPlacemark(mappoint_4, imageProvider_2);
-            placemark_4.setIconStyle(new IconStyle().setScale(0.1f));
-            placemark_4.addTapListener(mapObjectTapListener);
-
-            Point mappoint_5= new Point(56.329333, 44.016239);
-            PlacemarkMapObject placemark_5 = mapView.getMapWindow().getMap().getMapObjects().addPlacemark(mappoint_5, imageProvider_2);
-            placemark_5.setIconStyle(new IconStyle().setScale(0.1f));
-            placemark_5.addTapListener(mapObjectTapListener);
-
-            Point mappoint_6= new Point(56.329576, 44.009824);
-            PlacemarkMapObject placemark_6 = mapView.getMapWindow().getMap().getMapObjects().addPlacemark(mappoint_6, imageProvider_2);
-            placemark_6.setIconStyle(new IconStyle().setScale(0.1f));
-            placemark_6.addTapListener(mapObjectTapListener);
+        if (showAllMarkers) {
+            // Показываем все метки
+            addAllMarkers();
+        } else {
+            // Показываем только выбранную категорию
+            String selectedType = categoryList.get(categoryAdapter.getSelectedPosition()).getType();
+            if (selectedType.equals("Музей")) {
+                addMuseumMarkers();
+            } else if (selectedType.equals("Театр")) {
+                addTheaterMarkers();
+            } else if (selectedType.equals("Парк")) {
+                addParkMarkers();
+            }
         }
-        if (selectedCheckBoxIds.contains(R.id.checkBoxTheaters)) {
-            ImageProvider imageProvider = ImageProvider.fromResource(home_fragment.this.getActivity(), R.drawable.location_pin);
-            Point mappoint_1= new Point(56.325716, 44.004898);
-            PlacemarkMapObject placemark_1 = mapView.getMapWindow().getMap().getMapObjects().addPlacemark(mappoint_1, imageProvider);
-            placemark_1.setIconStyle(new IconStyle().setScale(0.1f));
-            placemark_1.addTapListener(mapObjectTapListener);
+    }
 
-            Point mappoint_2= new Point(56.333123, 43.902013);
-            PlacemarkMapObject placemark_2 = mapView.getMapWindow().getMap().getMapObjects().addPlacemark(mappoint_2, imageProvider);
-            placemark_2.setIconStyle(new IconStyle().setScale(0.1f));
-            placemark_2.addTapListener(mapObjectTapListener);
+    private void addAllMarkers() {
+        addMuseumMarkers();
+        addTheaterMarkers();
+        addParkMarkers();
+    }
 
-            Point mappoint_3= new Point(56.324411, 44.003085);
-            PlacemarkMapObject placemark_3 = mapView.getMapWindow().getMap().getMapObjects().addPlacemark(mappoint_3, imageProvider);
-            placemark_3.setIconStyle(new IconStyle().setScale(0.1f));
-            placemark_3.addTapListener(mapObjectTapListener);
+    private void addMuseumMarkers() {
+        ImageProvider imageProvider = ImageProvider.fromResource(home_fragment.this.getActivity(), R.drawable.blue_pin);
+        for (Map.Entry<String, PlaceModel> entry : placesInfo.entrySet()) {
+            if (entry.getValue().getType().equals("Музей")) {
+                String[] coords = entry.getKey().split(",");
+                Point point = new Point(Double.parseDouble(coords[0]), Double.parseDouble(coords[1]));
+                PlacemarkMapObject placemark = mapView.getMapWindow().getMap().getMapObjects().addPlacemark(point, imageProvider);
+                placemark.setIconStyle(new IconStyle().setScale(0.1f));
+                placemark.addTapListener(mapObjectTapListener);
+            }
         }
-        if (selectedCheckBoxIds.contains(R.id.checkBoxMuseums)) {
-            ImageProvider imageProvider_4 = ImageProvider.fromResource(home_fragment.this.getActivity(), R.drawable.blue_pin);
-            Point mappoint_10= new Point(56.320417, 43.946482);
-            PlacemarkMapObject placemark_10 = mapView.getMapWindow().getMap().getMapObjects().addPlacemark(mappoint_10, imageProvider_4);
-            placemark_10.setIconStyle(new IconStyle().setScale(0.1f));
-            placemark_10.addTapListener(mapObjectTapListener);
+    }
 
-            Point mappoint_11= new Point(56.318164, 43.995279);
-            PlacemarkMapObject placemark_11 = mapView.getMapWindow().getMap().getMapObjects().addPlacemark(mappoint_11, imageProvider_4);
-            placemark_11.setIconStyle(new IconStyle().setScale(0.1f));
-            placemark_11.addTapListener(mapObjectTapListener);
+    private void addTheaterMarkers() {
+        ImageProvider imageProvider = ImageProvider.fromResource(home_fragment.this.getActivity(), R.drawable.location_pin);
+        for (Map.Entry<String, PlaceModel> entry : placesInfo.entrySet()) {
+            if (entry.getValue().getType().equals("Театр")) {
+                String[] coords = entry.getKey().split(",");
+                Point point = new Point(Double.parseDouble(coords[0]), Double.parseDouble(coords[1]));
+                PlacemarkMapObject placemark = mapView.getMapWindow().getMap().getMapObjects().addPlacemark(point, imageProvider);
+                placemark.setIconStyle(new IconStyle().setScale(0.1f));
+                placemark.addTapListener(mapObjectTapListener);
+            }
+        }
+    }
 
-            Point mappoint_12= new Point(56.328139, 44.006500);
-            PlacemarkMapObject placemark_12 = mapView.getMapWindow().getMap().getMapObjects().addPlacemark(mappoint_12, imageProvider_4);
-            placemark_12.setIconStyle(new IconStyle().setScale(0.1f));
-            placemark_12.addTapListener(mapObjectTapListener);
+    private void addParkMarkers() {
+        ImageProvider imageProvider = ImageProvider.fromResource(home_fragment.this.getActivity(), R.drawable.green_pin);
+        for (Map.Entry<String, PlaceModel> entry : placesInfo.entrySet()) {
+            if (entry.getValue().getType().equals("Парк")) {
+                String[] coords = entry.getKey().split(",");
+                Point point = new Point(Double.parseDouble(coords[0]), Double.parseDouble(coords[1]));
+                PlacemarkMapObject placemark = mapView.getMapWindow().getMap().getMapObjects().addPlacemark(point, imageProvider);
+                placemark.setIconStyle(new IconStyle().setScale(0.1f));
+                placemark.addTapListener(mapObjectTapListener);
+            }
         }
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        ArrayList<Integer> selectedCheckBoxIds = requireActivity().getIntent().getIntegerArrayListExtra("selectedCheckBoxIds");
-        updatePlacemarkMapObjectVisibility(selectedCheckBoxIds);
+        updatePlacemarkMapObjectVisibility();
     }
 }
 

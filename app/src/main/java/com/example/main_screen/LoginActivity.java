@@ -62,7 +62,7 @@ public class LoginActivity extends AppCompatActivity {
                                                 String email = dataSnapshot.child("email").getValue(String.class);
                                                 String password = dataSnapshot.child("password").getValue(String.class);
                                                 String profileImage = dataSnapshot.child("profileImage").getValue(String.class);
-                                                startActivity(new Intent(LoginActivity.this, Category.class));
+                                                startActivity(new Intent(LoginActivity.this, MainActivity.class));
                                             }
 
                                             @Override

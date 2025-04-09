@@ -2,6 +2,7 @@ package com.example.main_screen;
 
 import static java.security.AccessController.getContext;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -26,6 +27,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 public class LoginActivity extends AppCompatActivity {
+    private ProgressDialog loadingBar;
+
 
     private ActivityLoginBinding binding;
 
@@ -33,6 +36,7 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
+        loadingBar = new ProgressDialog(this);
         binding = ActivityLoginBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         binding.minibackBtn.setOnClickListener(new View.OnClickListener() {
@@ -48,11 +52,16 @@ public class LoginActivity extends AppCompatActivity {
                 if (binding.emailEt.getText().toString().isEmpty() || binding.passwordEt.getText().toString().isEmpty()) {
                     Toast.makeText(getApplicationContext(), "Fields cannot be empty", Toast.LENGTH_SHORT).show();
                 } else {
+                    loadingBar.setTitle("Вход в приложение");
+                    loadingBar.setMessage("Пожалуйста, подождите...");
+                    loadingBar.setCanceledOnTouchOutside(false);
+                    loadingBar.show();
                     FirebaseAuth.getInstance().signInWithEmailAndPassword(binding.emailEt.getText().toString(), binding.passwordEt.getText().toString())
                             .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                                 @Override
                                 public void onComplete(@NonNull Task<AuthResult> task) {
                                     if (task.isSuccessful()) {
+                                        loadingBar.dismiss();
                                         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
                                         DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("Users").child(currentUser.getUid());
                                         userRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -67,6 +76,7 @@ public class LoginActivity extends AppCompatActivity {
 
                                             @Override
                                             public void onCancelled(@NonNull DatabaseError databaseError) {
+                                                loadingBar.dismiss();
                                                 Toast.makeText(LoginActivity.this, "You have some errors.", Toast.LENGTH_LONG);
                                             }
                                         });

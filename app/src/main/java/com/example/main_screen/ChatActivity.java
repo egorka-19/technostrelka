@@ -1,10 +1,16 @@
 package com.example.main_screen;
 
+import static android.view.View.INVISIBLE;
+import static android.view.View.VISIBLE;
+
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -33,8 +39,10 @@ public class ChatActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
     private EditText editText;
-    private ImageButton sendButton;
+    private ImageButton sendButton, btnnext;
     private ChatAdapter adapter;
+    private LinearLayout messageCont;
+
     private List<Message> messages = new ArrayList<>();
     private Handler handler;
     private int currentStep = 0;
@@ -56,6 +64,8 @@ public class ChatActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.chat_recycler);
         editText = findViewById(R.id.enter);
         sendButton = findViewById(R.id.send);
+        btnnext = findViewById(R.id.btn_next);
+        messageCont = findViewById(R.id.message_container);
         handler = new Handler(Looper.getMainLooper());
         adapter = new ChatAdapter(messages);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -70,6 +80,12 @@ public class ChatActivity extends AppCompatActivity {
 
         addBotMessage("👋 Привет! Я твой культурный навигатор. Ответь на три коротких вопроса, чтобы я понял, что тебе интересно. Отвечай полноценными ответами.");
         askNextQuestion();
+        btnnext.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(ChatActivity.this, MainActivity.class));
+            }
+        });
 
         sendButton.setOnClickListener(v -> {
             String userMessage = editText.getText().toString().trim();
@@ -83,9 +99,11 @@ public class ChatActivity extends AppCompatActivity {
                     userAnswers.add(userMessage);
                     askAIAndRespond(userAnswers);
                     currentStep++;
+                    messageCont.setVisibility(INVISIBLE);
                 }
-            }
+                }
         });
+
     }
 
     private void askNextQuestion() {
@@ -113,8 +131,9 @@ public class ChatActivity extends AppCompatActivity {
         executor.execute(() -> {
             String response = chatGPT(prompt);
             handler.post(() -> {
-                addBotMessage(response);
+                addBotMessage("Ваше направление: " + response);
                 saveUserCategory(response);
+                btnnext.setVisibility(VISIBLE);
             });
         });
     }

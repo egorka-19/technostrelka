@@ -1,4 +1,5 @@
 package com.example.main_screen;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -24,6 +25,7 @@ import com.example.main_screen.MainActivity;
 
 public class RegisterActivity extends AppCompatActivity {
     public FirebaseDatabase database;
+    private ProgressDialog loadingBar;
     public DatabaseReference reference;
 
 
@@ -32,6 +34,7 @@ public class RegisterActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        loadingBar = new ProgressDialog(this);
         database = FirebaseDatabase.getInstance();
         reference = database.getReference();
         binding = ActivityRegisterBinding.inflate(getLayoutInflater());
@@ -51,11 +54,16 @@ public class RegisterActivity extends AppCompatActivity {
                         || binding.passwordEt.getText().toString().isEmpty()){
                     Toast.makeText(getApplicationContext(), "Fields cannot be empty", Toast.LENGTH_SHORT).show();
                 }else{
+                    loadingBar.setTitle("Вход в приложение");
+                    loadingBar.setMessage("Пожалуйста, подождите...");
+                    loadingBar.setCanceledOnTouchOutside(false);
+                    loadingBar.show();
                     FirebaseAuth.getInstance().createUserWithEmailAndPassword(binding.emailEt.getText().toString(), binding.passwordEt.getText().toString())
                             .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                                 @Override
                                 public void onComplete(@NonNull Task<AuthResult> task) {
                                     if (task.isSuccessful()){
+                                        loadingBar.dismiss();
                                         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
                                         DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("Users").child(currentUser.getUid());
                                         userRef.child("username").setValue(binding.loginEt.getText().toString());
@@ -84,6 +92,7 @@ public class RegisterActivity extends AppCompatActivity {
                                         userReviews.child("Museum").child("Motomuseum").child(currentUser.getUid()).child("lovest").setValue(0);
                                         startActivity(new Intent(RegisterActivity.this, ChatActivity.class));
                                     }else{
+                                        loadingBar.dismiss();
                                         Toast.makeText(RegisterActivity.this, "You have some errors", Toast.LENGTH_SHORT).show();
                                     }
                                 }

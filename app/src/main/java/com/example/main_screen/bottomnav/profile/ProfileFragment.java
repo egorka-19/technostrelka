@@ -21,9 +21,12 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
+import com.example.main_screen.ChatActivity;
+import com.example.main_screen.ProfileChatActivity;
 import com.example.main_screen.Settings_Activity;
 import com.example.main_screen.databinding.FragmentProfileBinding;
 import com.example.main_screen.favourite;
+import com.example.main_screen.service.ScoreService;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -60,6 +63,11 @@ public class ProfileFragment extends Fragment {
         binding.supportLayout.setOnClickListener(v -> {
             Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/flachka"));
             startActivity(browserIntent);
+        });
+
+        // Add click listener for chat item
+        binding.chatLayout.setOnClickListener(v -> {
+            startActivity(new Intent(getActivity(), ProfileChatActivity.class));
         });
 
         return binding.getRoot();
@@ -109,8 +117,9 @@ public class ProfileFragment extends Fragment {
                                 .into(binding.profileImage);
                         }
 
-                        // Установка прогресса
-                        int progress = calculateUserProgress(snapshot);
+                        // Обновление прогресс бара на основе очков из ScoreService
+                        int score = ScoreService.getInstance().getScore();
+                        int progress = Math.min(score, 100);
                         progressBar.setProgress(progress);
                         binding.progressText.setText(progress + "%");
                     }
@@ -120,12 +129,6 @@ public class ProfileFragment extends Fragment {
                         Toast.makeText(getContext(), "Ошибка загрузки данных", Toast.LENGTH_SHORT).show();
                     }
                 });
-    }
-
-    private int calculateUserProgress(DataSnapshot snapshot) {
-        // Здесь можно добавить логику расчета прогресса пользователя
-        // Например, на основе посещенных мест, выполненных заданий и т.д.
-        return 0; // Временное значение
     }
 
     private void selectImage(){
@@ -156,5 +159,15 @@ public class ProfileFragment extends Fragment {
                         }
                     });
         }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Обновляем прогресс бар при возвращении на экран профиля
+        int score = ScoreService.getInstance().getScore();
+        int progress = Math.min(score, 100);
+        progressBar.setProgress(progress);
+        binding.progressText.setText(progress + "%");
     }
 }

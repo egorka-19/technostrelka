@@ -52,6 +52,13 @@
                 android:textColor="@color/black"
                 android:textSize="20sp" />
 
+            <include
+                android:id="@+id/mark_as_read_button"
+                layout="@layout/button_mark_read"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp" />
+
         </LinearLayout>
 
     </androidx.core.widget.NestedScrollView>

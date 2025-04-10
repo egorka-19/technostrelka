@@ -9,6 +9,7 @@ import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResult;
@@ -18,8 +19,6 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.main_screen.Settings_Activity;
@@ -35,47 +34,32 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.UploadTask;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import com.example.main_screen.adapter.PublishAdapter;
-
-import com.example.main_screen.model.publish;
 
 public class ProfileFragment extends Fragment {
     private FragmentProfileBinding binding;
     private Uri filePath;
-
-    private List<publish> PublishList = new ArrayList<>();
-
-    RecyclerView recyclepublish;
+    private ProgressBar progressBar;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = FragmentProfileBinding.inflate(inflater, container, false);
+        progressBar = binding.progressBar;
 
         loadUserInfo();
 
-        binding.profileImageView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                selectImage();
-                Toast.makeText(getContext(), "Дождитесь загрузки фото, не выходите из приложения!", Toast.LENGTH_SHORT).show();
-            }
+        binding.profileImage.setOnClickListener(v -> {
+            selectImage();
+            Toast.makeText(getContext(), "Дождитесь загрузки фото, не выходите из приложения!", Toast.LENGTH_SHORT).show();
         });
 
-        binding.logoutBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(ProfileFragment.this.getActivity(), Settings_Activity.class));
-            }
+        binding.logoutLayout.setOnClickListener(v -> {
+            startActivity(new Intent(ProfileFragment.this.getActivity(), Settings_Activity.class));
         });
-        binding.favourite.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(ProfileFragment.this.getActivity(), favourite.class));
-            }
+
+        binding.supportLayout.setOnClickListener(v -> {
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/flachka"));
+            startActivity(browserIntent);
         });
 
         return binding.getRoot();
@@ -95,7 +79,7 @@ public class ProfileFragment extends Fragment {
                                             requireContext().getContentResolver(),
                                             filePath
                                     );
-                            binding.profileImageView.setImageBitmap(bitmap);
+                            binding.profileImage.setImageBitmap(bitmap);
                         }catch(IOException e){
                             e.printStackTrace();
                         }
@@ -113,39 +97,35 @@ public class ProfileFragment extends Fragment {
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         String username = snapshot.child("username").getValue().toString();
                         String profileImage = snapshot.child("profileImage").getValue().toString();
-                        String postsImages = snapshot.child("postImages").getValue().toString();
-                        String postNameText = snapshot.child("postNameText").getValue().toString();
-                        binding.usernameTv.setText(username);
+                        String email = snapshot.child("email").getValue().toString();
+                        
+                        binding.profileName.setText(username);
+                        binding.profileEmail.setText(email);
 
                         if (!profileImage.isEmpty()){
-                            Glide.with(getContext()).load(profileImage).into(binding.profileImageView);
-                        }
-                        else{
-                            Toast.makeText(getContext(), "Загрузите свое фото!", Toast.LENGTH_SHORT).show();
+                            Glide.with(getContext())
+                                .load(profileImage)
+                                .circleCrop()
+                                .into(binding.profileImage);
                         }
 
-                        PublishList.add(new publish(1, postsImages, postNameText));
-                        PublishList.add(new publish(2, "imper", "Кинотеатр Империя грёз"));
-                        PublishList.add(new publish(3, "cosmos", "Парк Космонавтов"));
-                        PublishList.add(new publish(4, "cirov", "Парк Кирова"));
-                        PublishList.add(new publish(5, "rest", "Ресторан Penthouse"));
-                        setPublishRecycler();
+                        // Установка прогресса
+                        int progress = calculateUserProgress(snapshot);
+                        progressBar.setProgress(progress);
+                        binding.progressText.setText(progress + "%");
                     }
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
-
+                        Toast.makeText(getContext(), "Ошибка загрузки данных", Toast.LENGTH_SHORT).show();
                     }
                 });
     }
 
-    private void setPublishRecycler() {
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext(), RecyclerView.HORIZONTAL, false);
-        recyclepublish = binding.recyclepublish;
-        recyclepublish.setLayoutManager(layoutManager);
-
-        PublishAdapter publishAdapter = new PublishAdapter(getContext(), PublishList);
-        recyclepublish.setAdapter(publishAdapter);
+    private int calculateUserProgress(DataSnapshot snapshot) {
+        // Здесь можно добавить логику расчета прогресса пользователя
+        // Например, на основе посещенных мест, выполненных заданий и т.д.
+        return 0; // Временное значение
     }
 
     private void selectImage(){
@@ -163,7 +143,7 @@ public class ProfileFragment extends Fragment {
                     .putFile(filePath).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                         @Override
                         public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                            Toast.makeText(getContext(), "Photo upload complete", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getContext(), "Фото успешно загружено", Toast.LENGTH_SHORT).show();
 
                             FirebaseStorage.getInstance().getReference().child("images/"+uid).getDownloadUrl()
                                     .addOnSuccessListener(new OnSuccessListener<Uri>() {

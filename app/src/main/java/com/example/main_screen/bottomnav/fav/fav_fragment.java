@@ -98,9 +98,9 @@ public class fav_fragment extends Fragment {
                             break;
                     }
                 }
-            }
+        }
 
-            @Override
+        @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 // Handle error
             }

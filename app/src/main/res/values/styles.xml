@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<style name="MyTheme" parent="Theme.AppCompat.DayNight">
-    AppCompatDelegate.setDefaultNightMode(
-    AppCompatDelegate.MODE_NIGHT_NO);
-    }
-</style>
+<resources>
+    <style name="MyTheme" parent="Theme.AppCompat.DayNight">
+        <item name="android:forceDarkAllowed">false</item>
+    </style>
+
+    <style name="Widget.App.BottomNavigationView" parent="Widget.MaterialComponents.BottomNavigationView">
+        <item name="android:layout_height">@dimen/bottom_navigation_height</item>
+    </style>
+</resources>

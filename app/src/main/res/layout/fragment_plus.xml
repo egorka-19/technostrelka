@@ -35,11 +35,11 @@
                 android:id="@+id/games_label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
                 android:layout_marginStart="16dp"
+                android:layout_marginTop="24dp"
                 android:fontFamily="@font/rostelecombasis_medium"
                 android:text="Игры"
-                android:textSize="18sp"/>
+                android:textSize="24sp" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/games_recycler"
@@ -51,11 +51,11 @@
                 android:id="@+id/videos_label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
                 android:layout_marginStart="16dp"
+                android:layout_marginTop="24dp"
                 android:fontFamily="@font/rostelecombasis_medium"
                 android:text="Видеолекции"
-                android:textSize="18sp"/>
+                android:textSize="24sp" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/videos_recycler"
@@ -67,17 +67,17 @@
                 android:id="@+id/articles_label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
                 android:layout_marginStart="16dp"
+                android:layout_marginTop="24dp"
                 android:fontFamily="@font/rostelecombasis_medium"
                 android:text="Статьи"
-                android:textSize="18sp"/>
+                android:textSize="24sp" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/articles_recycler"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"/>
+                android:layout_marginTop="8dp" />
 
         </LinearLayout>
     </ScrollView>

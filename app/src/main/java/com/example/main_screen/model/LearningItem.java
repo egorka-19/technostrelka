@@ -1,6 +1,8 @@
 package com.example.main_screen.model;
 
-public class LearningItem {
+import java.io.Serializable;
+
+public class LearningItem implements Serializable {
     private String id;
     private String title;
     private String description;

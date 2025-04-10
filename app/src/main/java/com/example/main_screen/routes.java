@@ -57,7 +57,7 @@ public class routes extends AppCompatActivity implements ArtObjectAdapter.OnArtO
             
             // Load user's category
             userRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
+            @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     userCategory = dataSnapshot.child("category_user").getValue(String.class);
                     if (userCategory != null && !userCategory.isEmpty()) {

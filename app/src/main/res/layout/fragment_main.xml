@@ -1,95 +1,111 @@
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white"
-    tools:context=".bottomnav.MainFragment">
+    tools:context=".bottomnav.events.ThemainscreenFragment">
 
-    <ImageView
-        android:id="@+id/background"
-        android:layout_width="412dp"
-        android:layout_height="882dp"
+    <!-- Аватарка пользователя -->
+    <com.makeramen.roundedimageview.RoundedImageView
+        android:id="@+id/user_avatar"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:src="@drawable/profile"
         android:scaleType="centerCrop"
-        android:src="@drawable/main_screen_main"
-        tools:layout_editor_absoluteX="-1dp"
-        tools:layout_editor_absoluteY="32dp" />
-    <!-- Картинка поиска -->
-    <ImageView
-        android:id="@+id/search_iv"
-        android:layout_width="425dp"
-        android:layout_height="53dp"
-        android:layout_marginTop="72dp"
-        android:scaleType="fitCenter"
-        android:src="@drawable/search"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:riv_corner_radius="24dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Поле ввода -->
-    <EditText
-        android:id="@+id/serach_box"
-        android:layout_width="275dp"
-        android:layout_height="41dp"
-        android:layout_marginStart="35dp"
-        android:layout_marginEnd="100dp"
-        android:backgroundTint="@android:color/transparent"
-        android:fontFamily="@font/nunito"
-        android:gravity="center|left"
-        android:hint="Поиск"
-        android:textSize="20sp"
-        app:layout_constraintBottom_toBottomOf="@id/search_iv"
+    <!-- Поле поиска -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/search_card"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="16dp"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="2dp"
+        app:cardBackgroundColor="@color/light_gray"
+        app:layout_constraintStart_toEndOf="@id/user_avatar"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/search_iv" />
+        app:layout_constraintTop_toTopOf="parent">
 
-    <!-- Результаты поиска -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/search_rec"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/serach_box" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp">
 
-    <!-- Рекомендации / категории -->
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/search"
+                android:tint="@color/gray" />
 
-    <!-- Популярные -->
+            <EditText
+                android:id="@+id/search_box"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:background="@android:color/transparent"
+                android:hint="Поиск по названию"
+                android:textSize="16sp"
+                android:textColorHint="@color/gray"
+                android:fontFamily="@font/nunito"
+                android:inputType="text"
+                android:maxLines="1" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
 
-    <!-- Образовательные -->
+    <!-- Горизонтальный RecyclerView для фильтров (категорий) -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/exp_rec"
         android:layout_width="match_parent"
-        android:layout_height="45dp"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="10dp"
-        android:background="@android:color/transparent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@id/search_card"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/search_iv" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- Вертикальный RecyclerView для карточек событий -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/pop_rec"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="5dp"
-        android:paddingBottom="180dp"
-        android:nestedScrollingEnabled="false"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.444"
+        android:layout_height="0dp"
+        android:layout_marginTop="16dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="16dp"
+        android:clipToPadding="false"
+        app:layout_constraintTop_toBottomOf="@id/exp_rec"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/exp_rec" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- RecyclerView для результатов поиска (скрыт по умолчанию) -->
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/pro_rec"
+        android:id="@+id/search_rec"
         android:layout_width="match_parent"
-        android:layout_height="120dp"
-        android:layout_margin="5dp"
-        android:paddingBottom="180dp"
-        app:layout_constraintTop_toBottomOf="@id/pop_rec"
+        android:layout_height="0dp"
+        android:layout_marginTop="16dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="16dp"
+        android:visibility="gone"
+        android:clipToPadding="false"
+        app:layout_constraintTop_toBottomOf="@id/exp_rec"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
@@ -98,7 +114,21 @@
         android:id="@+id/progressbar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@id/pro_rec"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Пустое состояние -->
+    <include
+        android:id="@+id/empty_state"
+        layout="@layout/empty_state"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/exp_rec"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 

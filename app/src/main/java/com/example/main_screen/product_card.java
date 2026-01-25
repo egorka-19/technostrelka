@@ -101,7 +101,14 @@ public class product_card extends AppCompatActivity {
     }
 
     private void loadPlaceModelData() {
-        detailedImg.setImageResource(placeModel.getImageResourceId());
+        String imageUrl = placeModel.getImageUrl();
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            Glide.with(getApplicationContext())
+                .load(imageUrl)
+                .into(detailedImg);
+        } else {
+            detailedImg.setImageResource(placeModel.getImageResourceId());
+        }
         name.setText(placeModel.getName());
         description.setText(placeModel.getDescription());
         age.setText(placeModel.getAge());

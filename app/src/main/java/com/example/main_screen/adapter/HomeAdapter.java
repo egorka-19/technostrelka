@@ -64,6 +64,9 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.ViewHolder> {
                 if (selectedPosition == 0) {
                     // Show all items
                     fragment.showAllItems();
+                } else if (selectedPosition == 1) {
+                    // Show favorite items
+                    fragment.filterItemsByCategory("favorite");
                 } else {
                     // Filter by selected category
                     fragment.filterItemsByCategory(categoryList.get(selectedPosition).getType());

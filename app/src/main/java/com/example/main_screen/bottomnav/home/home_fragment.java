@@ -34,6 +34,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.bumptech.glide.Glide;
 import com.example.main_screen.databinding.FragmentHomeBinding;
 import com.yandex.runtime.image.ImageProvider;
 
@@ -60,63 +61,45 @@ public class home_fragment extends Fragment {
     // Map для хранения информации о местах
     private Map<String, PlaceModel> placesInfo = new HashMap<>();
 
-    // Инициализация данных о местах
+    private int placeImageRes(String drawableName) {
+        if (getContext() == null) return R.drawable.ab1;
+        int id = getResources().getIdentifier("ic_" + drawableName, "drawable", getContext().getPackageName());
+        return id != 0 ? id : R.drawable.ab1;
+    }
+
+    // Инициализация данных о местах (Ижевск)
     private void initPlacesInfo() {
-        // Театры
-        placesInfo.put("56.324128,44.001458",
-                new PlaceModel("Театр драмы", "Нижегородский государственный академический театр драмы им. М. Горького", R.drawable.ab1, "Театр", "0+", "10.04.2025", "Нижний Новгород"));
-        placesInfo.put("56.315830,44.016955",
-                new PlaceModel("Театр оперы", "Нижегородский государственный академический театр оперы и балета", R.drawable.ab2, "Театр", "0+", "10.04.2025", "Нижний Новгород"));
-        placesInfo.put("56.318407,43.995999",
-                new PlaceModel("Театр кукол", "Нижегородский государственный театр кукол", R.drawable.ab24, "Театр", "0+", "10.04.2025", "Нижний Новгород"));
-        placesInfo.put("56.316545,44.010511",
-                new PlaceModel("Театр юного зрителя", "Нижегородский театр юного зрителя", R.drawable.ab4, "Театр", "0+", "10.04.2025", "Нижний Новгород"));
-        placesInfo.put("56.320387,44.002252",
-                new PlaceModel("Театр комедии", "Нижегородский театр комедии", R.drawable.ab5, "Театр", "0+", "10.04.2025", "Нижний Новгород"));
+        // Театры (3)
+        placesInfo.put("56.844125,53.199509",
+                new PlaceModel("Робин Гуд", "Русский драматический театр Удмуртии", placeImageRes("robin"), "Театр", "0+", "10.04.2025", "Ижевск"));
+        placesInfo.put("56.850470,53.199591",
+                new PlaceModel("Любовь и голуби", "ДК «Аксион»", placeImageRes("loveandgolub"), "Театр", "0+", "10.04.2025", "Ижевск"));
+        placesInfo.put("56.845329,53.198977",
+                new PlaceModel("Алые паруса", "Национальный театр", placeImageRes("redparus"), "Театр", "0+", "10.04.2025", "Ижевск"));
 
-        // Парки
-        placesInfo.put("56.327844,44.035364",
-                new PlaceModel("Парк Победы", "Парк культуры и отдыха в Нижнем Новгороде", R.drawable.ab25, "Парк", "0+", "10.04.2025", "Нижний Новгород"));
-        placesInfo.put("56.274489,43.973353",
-                new PlaceModel("Парк Швейцария", "Крупнейший парк в Нижнем Новгороде", R.drawable.ab7, "Парк", "0+", "10.04.2025", "Нижний Новгород"));
-        placesInfo.put("56.315192,44.008244",
-                new PlaceModel("Парк Кулибина", "Парк имени И.П. Кулибина", R.drawable.ab8, "Парк", "0+", "10.04.2025", "Нижний Новгород"));
-        placesInfo.put("56.311604,43.935067",
-                new PlaceModel("Парк 1 Мая", "Парк культуры и отдыха 1 Мая", R.drawable.ab9, "Парк", "0+", "10.04.2025", "Нижний Новгород"));
-        placesInfo.put("56.268348,43.919829",
-                new PlaceModel("Парк Дубки", "Парк Дубки с вековыми дубами", R.drawable.ab10, "Парк", "0+", "10.04.2025", "Нижний Новгород"));
-        placesInfo.put("56.339099,43.857030",
-                new PlaceModel("Парк Сормовский", "Сормовский парк культуры и отдыха", R.drawable.ab11, "Парк", "0+", "10.04.2025", "Нижний Новгород"));
+        // Рестораны (3)
+        placesInfo.put("56.848942,53.195590",
+                new PlaceModel("Panorama", "Открыт до 23:00", placeImageRes("panorama"), "Ресторан", "0+", "10.04.2025", "Ижевск"));
+        placesInfo.put("56.866523,53.207575",
+                new PlaceModel("Penthouse", "Открыт до 00:00", placeImageRes("penthouse"), "Ресторан", "0+", "10.04.2025", "Ижевск"));
+        placesInfo.put("56.848160,53.205816",
+                new PlaceModel("Каре", "Открыт до 00:00", placeImageRes("kare"), "Ресторан", "0+", "10.04.2025", "Ижевск"));
 
-        // Музеи
-        placesInfo.put("56.324340,43.882085",
-                new PlaceModel("Художественный музей", "Нижегородский государственный художественный музей", R.drawable.ab12, "Музей", "12+", "10.04.2025", "Нижний Новгород"));
-        placesInfo.put("56.255355,43.894809",
-                new PlaceModel("Музей истории", "Музей истории города Нижнего Новгорода", R.drawable.ab13, "Музей", "12+", "10.04.2025", "Нижний Новгород"));
-        placesInfo.put("56.320417,43.946482",
-                new PlaceModel("Музей науки", "Музей науки и техники", R.drawable.ab14, "Музей", "12+", "10.04.2025", "Нижний Новгород"));
-        placesInfo.put("56.322769,44.018617",
-                new PlaceModel("Музей Горького", "Музей-квартира А.М. Горького", R.drawable.ab15, "Музей", "12+", "10.04.2025", "Нижний Новгород"));
-        placesInfo.put("56.322736,43.998282",
-                new PlaceModel("Музей Добролюбова", "Музей Н.А. Добролюбова", R.drawable.ab16, "Музей", "12+", "10.04.2025", "Нижний Новгород"));
-        placesInfo.put("56.327350,44.017002",
-                new PlaceModel("Музей речного флота", "Музей истории речного флота", R.drawable.ab17, "Музей", "12+", "10.04.2025", "Нижний Новгород"));
+        // Парки (3)
+        placesInfo.put("56.864117,53.163655",
+                new PlaceModel("Парк имени С. М. Кирова", "Открыт до 23:00", placeImageRes("kirova"), "Парк", "0+", "10.04.2025", "Ижевск"));
+        placesInfo.put("56.846736,53.197960",
+                new PlaceModel("Летний сад им. М. Горького", "Открыт до 22:00", placeImageRes("gorkogo"), "Парк", "0+", "10.04.2025", "Ижевск"));
+        placesInfo.put("56.887326,53.249373",
+                new PlaceModel("Парк Космонавтов", "Открыт до 21:00", placeImageRes("cosmos"), "Парк", "0+", "10.04.2025", "Ижевск"));
 
-        // Достопримечательности
-        placesInfo.put("56.328624,44.002842",
-                new PlaceModel("Кремль", "Нижегородский кремль - исторический центр города", R.drawable.ab18, "Локация", "6+", "10.04.2025", "Нижний Новгород"));
-        placesInfo.put("56.330872,44.009461",
-                new PlaceModel("Чкаловская лестница", "Знаменитая лестница с видом на Волгу", R.drawable.ab19, "Локация", "6+", "10.04.2025", "Нижний Новгород"));
-        placesInfo.put("56.317088,43.994829",
-                new PlaceModel("Покровка", "Главная пешеходная улица города", R.drawable.ab20, "Локация", "6+", "10.04.2025", "Нижний Новгород"));
-        placesInfo.put("56.327306,43.984992",
-                new PlaceModel("Рождественская церковь", "Церковь Рождества Иоанна Предтечи", R.drawable.ab21, "Локация", "6+", "10.04.2025", "Нижний Новгород"));
-        placesInfo.put("56.357886,43.869049",
-                new PlaceModel("Собор Александра Невского", "Кафедральный собор Александра Невского", R.drawable.ab22, "Локация", "6+", "10.04.2025", "Нижний Новгород"));
-
-        // Кафе и рестораны
-        placesInfo.put("56.177811,44.177048",
-                new PlaceModel("Ресторан Волга", "Ресторан с панорамным видом на реку", R.drawable.ab23, "Ресторан", "3+", "10.04.2025", "Нижний Новгород"));
+        // Музеи (3)
+        placesInfo.put("56.843974,53.198077",
+                new PlaceModel("Музей ИЖМАШ", "ул. Свердлова, 32", placeImageRes("izhmash"), "Музей", "0+", "10.04.2025", "Ижевск"));
+        placesInfo.put("56.860644,53.182360",
+                new PlaceModel("Музей почты Удмуртии", "ул. Кирова, 7", placeImageRes("pochta"), "Музей", "0+", "10.04.2025", "Ижевск"));
+        placesInfo.put("56.845400,53.206505",
+                new PlaceModel("Ижевский Мотомузей Кожушковых", "Советская ул., 9", placeImageRes("kozhushkovi"), "Музей", "0+", "10.04.2025", "Ижевск"));
     }
 
     MapObjectTapListener mapObjectTapListener = new MapObjectTapListener() {
@@ -148,7 +131,11 @@ public class home_fragment extends Fragment {
             TextView titleView = dialogView.findViewById(R.id.place_title);
             TextView descriptionView = dialogView.findViewById(R.id.place_description);
 
-            imageView.setImageResource(info.getImageResourceId());
+            if (info.getImageUrl() != null && !info.getImageUrl().isEmpty()) {
+                Glide.with(requireActivity()).load(info.getImageUrl()).into(imageView);
+            } else {
+                imageView.setImageResource(info.getImageResourceId());
+            }
             titleView.setText(info.getName());
             descriptionView.setText(info.getDescription());
 
@@ -232,7 +219,7 @@ public class home_fragment extends Fragment {
         // Устанавливаем начальную позицию камеры
         if (mapView != null) {
             mapView.getMapWindow().getMap().move(
-                    new CameraPosition(new Point(56.326797, 44.006516), 14.0f, 0.0f, 0.0f),
+                    new CameraPosition(new Point(56.852924, 53.210754), 14.0f, 0.0f, 0.0f),
                     new Animation(Animation.Type.SMOOTH, 5),
                     null);
         }

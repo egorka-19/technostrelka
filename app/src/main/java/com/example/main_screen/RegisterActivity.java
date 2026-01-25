@@ -90,7 +90,7 @@ public class RegisterActivity extends AppCompatActivity {
                                         userReviews.child("Museum").child("Izhmash").child(currentUser.getUid()).child("lovest").setValue(0);
                                         userReviews.child("Museum").child("Pochta_UR").child(currentUser.getUid()).child("lovest").setValue(0);
                                         userReviews.child("Museum").child("Motomuseum").child(currentUser.getUid()).child("lovest").setValue(0);
-                                        startActivity(new Intent(RegisterActivity.this, ChatActivity.class));
+                                        startActivity(new Intent(RegisterActivity.this, MainActivity.class));
                                     }else{
                                         loadingBar.dismiss();
                                         Toast.makeText(RegisterActivity.this, "You have some errors", Toast.LENGTH_SHORT).show();

@@ -10,6 +10,7 @@ public class ViewAllModel implements Serializable {
     private String data;
     private String place;
     private String url;
+    private String type; // Тип категории (Кино, Театр, Парк, Ресторан, Музей и т.д.)
 
     public ViewAllModel() {
     }
@@ -22,6 +23,7 @@ public class ViewAllModel implements Serializable {
         this.data = data;
         this.place = place;
         this.url = url;
+        this.type = ""; // По умолчанию пусто
     }
 
     public String getName() {
@@ -78,6 +80,14 @@ public class ViewAllModel implements Serializable {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public String getType() {
+        return type != null ? type : "";
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 }
 

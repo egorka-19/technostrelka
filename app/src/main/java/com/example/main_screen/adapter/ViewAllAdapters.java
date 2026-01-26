@@ -21,8 +21,11 @@ import com.example.main_screen.model.ViewAllModel;
 import com.example.main_screen.R;
 import com.example.main_screen.product_card;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.List;
 
@@ -58,10 +61,8 @@ public class ViewAllAdapters extends RecyclerView.Adapter<ViewAllAdapters.ViewHo
         // Название события
         holder.eventName.setText(item.getName());
 
-        // Рейтинг (по умолчанию 5.0)
-        holder.eventRating.setText("5.0");
-        holder.starIcon.setVisibility(View.VISIBLE);
-        holder.eventRating.setVisibility(View.VISIBLE);
+        // Загрузка рейтинга из отзывов клиентов
+        loadRatingFromReviews(item, holder);
 
         // Возрастные ограничения
         String age = item.getAge();
@@ -75,15 +76,13 @@ public class ViewAllAdapters extends RecyclerView.Adapter<ViewAllAdapters.ViewHo
             holder.eventAge.setText("Нет ограничений по возрасту");
         }
 
-        // Часы работы / Статус
+        // Часы работы
         String data = item.getData();
         if (!TextUtils.isEmpty(data)) {
             holder.eventSchedule.setVisibility(View.VISIBLE);
-            holder.eventStatus.setVisibility(View.GONE);
             holder.eventSchedule.setText(data);
         } else {
             holder.eventSchedule.setVisibility(View.GONE);
-            holder.eventStatus.setVisibility(View.GONE);
         }
 
         // Адрес
@@ -176,6 +175,79 @@ public class ViewAllAdapters extends RecyclerView.Adapter<ViewAllAdapters.ViewHo
     }
 
     /**
+     * Загрузка рейтинга из отзывов клиентов
+     */
+    private void loadRatingFromReviews(ViewAllModel item, ViewHolder holder) {
+        String eventName = item.getName();
+        String categoryType = getCategoryTypeForFirebase(item.getType());
+        
+        DatabaseReference reviewsRef = FirebaseDatabase.getInstance()
+                .getReference("Reviews")
+                .child(categoryType)
+                .child(eventName);
+        
+        reviewsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    double totalRating = 0.0;
+                    int reviewCount = 0;
+                    
+                    // Проходим по всем пользователям, оставившим отзывы
+                    for (DataSnapshot userSnapshot : snapshot.getChildren()) {
+                        if (userSnapshot.hasChild("rating")) {
+                            Object ratingObj = userSnapshot.child("rating").getValue();
+                            if (ratingObj != null) {
+                                try {
+                                    double rating = 0.0;
+                                    if (ratingObj instanceof Number) {
+                                        rating = ((Number) ratingObj).doubleValue();
+                                    } else if (ratingObj instanceof String) {
+                                        rating = Double.parseDouble((String) ratingObj);
+                                    }
+                                    
+                                    if (rating > 0 && rating <= 5) {
+                                        totalRating += rating;
+                                        reviewCount++;
+                                    }
+                                } catch (Exception e) {
+                                    android.util.Log.e("RatingError", "Error parsing rating", e);
+                                }
+                            }
+                        }
+                    }
+                    
+                    if (reviewCount > 0) {
+                        double averageRating = totalRating / reviewCount;
+                        // Округляем до 1 знака после запятой
+                        String ratingText = String.format("%.1f", averageRating);
+                        holder.eventRating.setText(ratingText);
+                        holder.starIcon.setVisibility(View.VISIBLE);
+                        holder.eventRating.setVisibility(View.VISIBLE);
+                    } else {
+                        // TODO: Если нет отзывов, показываем значение по умолчанию 5.0
+                        holder.eventRating.setText("5.0");
+                        holder.starIcon.setVisibility(View.VISIBLE);
+                        holder.eventRating.setVisibility(View.VISIBLE);
+                    }
+                } else {
+                    // TODO: Если нет отзывов, показываем значение по умолчанию 5.0
+                    holder.eventRating.setText("5.0");
+                    holder.starIcon.setVisibility(View.VISIBLE);
+                    holder.eventRating.setVisibility(View.VISIBLE);
+                }
+            }
+            
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                android.util.Log.e("RatingError", "Error loading rating", error.toException());
+                holder.starIcon.setVisibility(View.GONE);
+                holder.eventRating.setVisibility(View.GONE);
+            }
+        });
+    }
+
+    /**
      * Переключение состояния избранного
      */
     private void toggleFavorite(ViewAllModel item, ViewHolder holder) {
@@ -245,8 +317,7 @@ public class ViewAllAdapters extends RecyclerView.Adapter<ViewAllAdapters.ViewHo
     public static class ViewHolder extends RecyclerView.ViewHolder {
         com.makeramen.roundedimageview.RoundedImageView eventImage;
         ImageView favoriteIcon, starIcon;
-        TextView eventName, eventRating, eventAge, eventSchedule, eventStatus, eventAddress;
-        Button detailsButton;
+        TextView eventName, eventRating, eventAge, eventSchedule, eventAddress, detailsButton;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -257,7 +328,6 @@ public class ViewAllAdapters extends RecyclerView.Adapter<ViewAllAdapters.ViewHo
             eventRating = itemView.findViewById(R.id.event_rating);
             eventAge = itemView.findViewById(R.id.event_age);
             eventSchedule = itemView.findViewById(R.id.event_schedule);
-            eventStatus = itemView.findViewById(R.id.event_status);
             eventAddress = itemView.findViewById(R.id.event_address);
             detailsButton = itemView.findViewById(R.id.details_button);
         }

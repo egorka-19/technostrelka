@@ -37,8 +37,11 @@ import com.example.main_screen.model.PopularModel;
 import com.example.main_screen.R;
 import com.example.main_screen.product_card;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.List;
 
@@ -104,18 +107,11 @@ public class PopularAdapters extends RecyclerView.Adapter<PopularAdapters.ViewHo
             // Название события
             holder.eventName.setText(currentItem.getName());
 
-            // Рейтинг
-            String rating = currentItem.getRating();
-            if (!TextUtils.isEmpty(rating)) {
-                holder.eventRating.setText(rating);
-                holder.starIcon.setVisibility(View.VISIBLE);
-                holder.eventRating.setVisibility(View.VISIBLE);
-            } else {
-                holder.starIcon.setVisibility(View.GONE);
-                holder.eventRating.setVisibility(View.GONE);
-            }
+            // Загрузка рейтинга из отзывов клиентов
+            loadRatingFromReviews(currentItem, holder);
 
             // Возрастные ограничения
+            // TODO: Загружать из Firebase, временно значение по умолчанию
             String age = currentItem.getAge();
             if (!TextUtils.isEmpty(age)) {
                 if (age.equals("0+") || age.equals("Нет ограничений")) {
@@ -127,45 +123,35 @@ public class PopularAdapters extends RecyclerView.Adapter<PopularAdapters.ViewHo
                 holder.eventAge.setText("Нет ограничений по возрасту");
             }
 
-            // Часы работы / Статус
+            // Часы работы
+            // TODO: Загружать из Firebase, временно значение по умолчанию
             String schedule = currentItem.getSchedule();
-            String status = currentItem.getStatus();
             
-            if (!TextUtils.isEmpty(status)) {
-                // Если есть статус, показываем его
-                holder.eventSchedule.setVisibility(View.GONE);
-                holder.eventStatus.setVisibility(View.VISIBLE);
-                holder.eventStatus.setText(status);
-                
-                if (status.toLowerCase().contains("закрыт") || status.toLowerCase().contains("closed")) {
-                    holder.eventStatus.setTextColor(context.getResources().getColor(R.color.red_pink));
-                } else {
-                    holder.eventStatus.setTextColor(context.getResources().getColor(R.color.blue));
-                }
-            } else if (!TextUtils.isEmpty(schedule)) {
+            if (!TextUtils.isEmpty(schedule)) {
                 // Если есть расписание, показываем его
                 holder.eventSchedule.setVisibility(View.VISIBLE);
-                holder.eventStatus.setVisibility(View.GONE);
                 holder.eventSchedule.setText(schedule);
             } else {
-                // Если нет ни того, ни другого, показываем data
+                // Если нет расписания, показываем data или значение по умолчанию
                 String data = currentItem.getData();
                 if (!TextUtils.isEmpty(data)) {
                     holder.eventSchedule.setVisibility(View.VISIBLE);
-                    holder.eventStatus.setVisibility(View.GONE);
                     holder.eventSchedule.setText(data);
                 } else {
-                    holder.eventSchedule.setVisibility(View.GONE);
-                    holder.eventStatus.setVisibility(View.GONE);
+                    // Значение по умолчанию
+                    holder.eventSchedule.setVisibility(View.VISIBLE);
+                    holder.eventSchedule.setText("пн-чт 06:30–23:00; пт 06:30–00:00; сб 08:00–00:00; вс 08:00–23:00");
                 }
             }
 
             // Адрес
+            // TODO: Загружать из Firebase, временно значение по умолчанию
             String place = currentItem.getPlace();
             if (!TextUtils.isEmpty(place)) {
                 holder.eventAddress.setText(place);
             } else {
-                holder.eventAddress.setText("Адрес не указан");
+                // Значение по умолчанию
+                holder.eventAddress.setText("Ижевск, ул. Милиционная, 5");
             }
 
             // Проверка состояния избранного из Firebase
@@ -296,6 +282,79 @@ public class PopularAdapters extends RecyclerView.Adapter<PopularAdapters.ViewHo
     }
 
     /**
+     * Загрузка рейтинга из отзывов клиентов
+     */
+    private void loadRatingFromReviews(PopularModel item, ViewHolder holder) {
+        String eventName = item.getName();
+        String categoryType = getCategoryTypeForFirebase(item.getType());
+        
+        DatabaseReference reviewsRef = FirebaseDatabase.getInstance()
+                .getReference("Reviews")
+                .child(categoryType)
+                .child(eventName);
+        
+        reviewsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    double totalRating = 0.0;
+                    int reviewCount = 0;
+                    
+                    // Проходим по всем пользователям, оставившим отзывы
+                    for (DataSnapshot userSnapshot : snapshot.getChildren()) {
+                        if (userSnapshot.hasChild("rating")) {
+                            Object ratingObj = userSnapshot.child("rating").getValue();
+                            if (ratingObj != null) {
+                                try {
+                                    double rating = 0.0;
+                                    if (ratingObj instanceof Number) {
+                                        rating = ((Number) ratingObj).doubleValue();
+                                    } else if (ratingObj instanceof String) {
+                                        rating = Double.parseDouble((String) ratingObj);
+                                    }
+                                    
+                                    if (rating > 0 && rating <= 5) {
+                                        totalRating += rating;
+                                        reviewCount++;
+                                    }
+                                } catch (Exception e) {
+                                    Log.e("RatingError", "Error parsing rating", e);
+                                }
+                            }
+                        }
+                    }
+                    
+                    if (reviewCount > 0) {
+                        double averageRating = totalRating / reviewCount;
+                        // Округляем до 1 знака после запятой
+                        String ratingText = String.format("%.1f", averageRating);
+                        holder.eventRating.setText(ratingText);
+                        holder.starIcon.setVisibility(View.VISIBLE);
+                        holder.eventRating.setVisibility(View.VISIBLE);
+                    } else {
+                        // TODO: Если нет отзывов, показываем значение по умолчанию 5.0
+                        holder.eventRating.setText("5.0");
+                        holder.starIcon.setVisibility(View.VISIBLE);
+                        holder.eventRating.setVisibility(View.VISIBLE);
+                    }
+                } else {
+                    // TODO: Если нет отзывов, показываем значение по умолчанию 5.0
+                    holder.eventRating.setText("5.0");
+                    holder.starIcon.setVisibility(View.VISIBLE);
+                    holder.eventRating.setVisibility(View.VISIBLE);
+                }
+            }
+            
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e("RatingError", "Error loading rating", error.toException());
+                holder.starIcon.setVisibility(View.GONE);
+                holder.eventRating.setVisibility(View.GONE);
+            }
+        });
+    }
+
+    /**
      * Преобразование типа категории для Firebase
      */
     private String getCategoryTypeForFirebase(String type) {
@@ -330,8 +389,7 @@ public class PopularAdapters extends RecyclerView.Adapter<PopularAdapters.ViewHo
     public static class ViewHolder extends RecyclerView.ViewHolder {
         com.makeramen.roundedimageview.RoundedImageView eventImage;
         ImageView favoriteIcon, starIcon;
-        TextView eventName, eventRating, eventAge, eventSchedule, eventStatus, eventAddress;
-        Button detailsButton;
+        TextView eventName, eventRating, eventAge, eventSchedule, eventAddress, detailsButton;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -342,7 +400,6 @@ public class PopularAdapters extends RecyclerView.Adapter<PopularAdapters.ViewHo
             eventRating = itemView.findViewById(R.id.event_rating);
             eventAge = itemView.findViewById(R.id.event_age);
             eventSchedule = itemView.findViewById(R.id.event_schedule);
-            eventStatus = itemView.findViewById(R.id.event_status);
             eventAddress = itemView.findViewById(R.id.event_address);
             detailsButton = itemView.findViewById(R.id.details_button);
         }

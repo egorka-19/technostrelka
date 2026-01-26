@@ -32,8 +32,8 @@ public class MainActivity extends AppCompatActivity {
             finish();
         }
 
-        getSupportFragmentManager().beginTransaction().replace(binding.fragmentContainer.getId(), new home_fragment()).commit();
-        binding.bottomnav.setSelectedItemId(R.id.home);
+        getSupportFragmentManager().beginTransaction().replace(binding.fragmentContainer.getId(), new ThemainscreenFragment()).commit();
+        binding.bottomnav.setSelectedItemId(R.id.events);
         Map<Integer, Fragment>fragmentMap = new HashMap<>();
         fragmentMap.put(R.id.profile, new ProfileFragment());
         fragmentMap.put(R.id.events, new ThemainscreenFragment());

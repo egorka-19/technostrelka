@@ -1,20 +1,20 @@
 package com.example.main_screen.bottomnav.plus;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.animation.ObjectAnimator;
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.media.MediaPlayer;
+import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
-import android.widget.Toast;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ScrollView;
+import android.widget.TextView;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -22,41 +22,44 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.main_screen.R;
-import com.example.main_screen.adapter.LearningAdapter;
-import com.example.main_screen.data.LocalLearningData;
+import com.example.main_screen.RoutesFilterActivity;
+import com.example.main_screen.adapter.RouteAdapter;
 import com.example.main_screen.databinding.FragmentPlusBinding;
-import com.example.main_screen.databinding.FragmentPlusTutorialBinding;
-import com.example.main_screen.model.LearningItem;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import com.example.main_screen.model.RouteModel;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class PlusFragment extends Fragment {
-    private static final String TAG = "PlusFragment";
+
     private FragmentPlusBinding binding;
-    private FragmentPlusTutorialBinding tutorialBinding;
-    private RecyclerView gamesRecycler, videosRecycler, articlesRecycler;
-    private List<LearningItem> gamesList;
-    private List<LearningItem> videosList;
-    private List<LearningItem> articlesList;
-    private LearningAdapter gamesAdapter;
-    private LearningAdapter videosAdapter;
-    private LearningAdapter articlesAdapter;
-    private MediaPlayer mediaPlayer;
-    private boolean isTutorialShown = false;
-    private static final String PREFS_NAME = "TutorialPrefs";
-    private static final String KEY_TUTORIAL_SHOWN = "tutorial_shown";
+    private EditText searchBox;
+    private ImageButton filterButton;
+    private RecyclerView searchResultsRecycler;
+    private View routesScrollView;
+
+    // Категории маршрутов
+    private Map<String, RecyclerView> categoryRecyclers = new HashMap<>();
+    private Map<String, List<RouteModel>> categoryRoutes = new HashMap<>();
+    private Map<String, RouteAdapter> categoryAdapters = new HashMap<>();
+
+    // Все маршруты для поиска
+    private List<RouteModel> allRoutes = new ArrayList<>();
+    private RouteAdapter searchAdapter;
+
+    // Фильтры
+    private String selectedGoal = null;
+    private String selectedDays = null;
+    private String selectedPeopleCount = null;
+
+    private ActivityResultLauncher<Intent> filterLauncher;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = FragmentPlusBinding.inflate(inflater, container, false);
-        tutorialBinding = FragmentPlusTutorialBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
 
@@ -64,167 +67,255 @@ public class PlusFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Проверяем, был ли показан туториал
-        SharedPreferences prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        isTutorialShown = prefs.getBoolean(KEY_TUTORIAL_SHOWN, false);
-
-        if (!isTutorialShown) {
-            showTutorial();
-        } else {
-            showMainContent();
-        }
-    }
-
-    private void showTutorial() {
-        try {
-            // Устанавливаем изображение для туториала
-            tutorialBinding.tutorialImage.setImageResource(R.drawable.tutorial_background);
-            Log.d(TAG, "Tutorial image resource set");
-            
-            // Добавляем туториал в контейнер
-            binding.getRoot().addView(tutorialBinding.getRoot());
-            Log.d(TAG, "Tutorial view added to container");
-            
-            // Настраиваем кнопку пропуска
-            tutorialBinding.continueButton.setOnClickListener(v -> {
-                Log.d(TAG, "Skip button clicked");
-                stopBackgroundMusic();
-                showMainContent();
-                saveTutorialShown();
-            });
-
-            // Запускаем анимации
-            startAnimations();
-            Log.d(TAG, "Animations started");
-            
-            // Запускаем фоновую музыку
-            startBackgroundMusic();
-            Log.d(TAG, "Background music started");
-        } catch (Exception e) {
-            Log.e(TAG, "Error in showTutorial: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-    private void showMainContent() {
-        try {
-            // Удаляем туториал из контейнера
-            if (tutorialBinding.getRoot().getParent() != null) {
-                ((ViewGroup) tutorialBinding.getRoot().getParent()).removeView(tutorialBinding.getRoot());
+        // Регистрация ActivityResultLauncher для фильтров
+        filterLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == android.app.Activity.RESULT_OK && result.getData() != null) {
+                    Intent data = result.getData();
+                    selectedGoal = data.getStringExtra("goal");
+                    selectedDays = data.getStringExtra("days");
+                    selectedPeopleCount = data.getStringExtra("peopleCount");
+                    
+                    // Применяем фильтры
+                    applyFilters();
+                }
             }
-            
-            // Инициализируем основной контент
-            initViews();
-            setupRecyclers();
-            
-            // Показываем основной контент
-            binding.getRoot().setVisibility(View.VISIBLE);
-            Log.d(TAG, "Main content shown");
-        } catch (Exception e) {
-            Log.e(TAG, "Error in showMainContent: " + e.getMessage());
-            e.printStackTrace();
-        }
+        );
+
+        initViews();
+        setupSearch();
+        setupFilterButton();
+        loadTestRoutes(); // TODO: Заменить на загрузку из Firebase
+        setupCategoryRecyclers();
     }
 
     private void initViews() {
-        gamesRecycler = binding.gamesRecycler;
-        videosRecycler = binding.videosRecycler;
-        articlesRecycler = binding.articlesRecycler;
-    }
-    
-    private void setupRecyclers() {
-        // Получение данных
-        gamesList = LocalLearningData.getGames();
-        videosList = LocalLearningData.getVideos();
-        articlesList = LocalLearningData.getArticles();
-        
-        // Настройка RecyclerView для игр
-        gamesRecycler.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
-        gamesAdapter = new LearningAdapter("game");
-        gamesAdapter.setItems(gamesList);
-        gamesRecycler.setAdapter(gamesAdapter);
-        
-        // Настройка RecyclerView для видео
-        videosRecycler.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
-        videosAdapter = new LearningAdapter("video");
-        videosAdapter.setItems(videosList);
-        videosRecycler.setAdapter(videosAdapter);
-        
-        // Настройка RecyclerView для статей
-        articlesRecycler.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
-        articlesAdapter = new LearningAdapter("article");
-        articlesAdapter.setItems(articlesList);
-        articlesRecycler.setAdapter(articlesAdapter);
+        searchBox = binding.searchBox;
+        filterButton = binding.filterButton;
+        searchResultsRecycler = binding.searchResultsRecycler;
+        routesScrollView = binding.routesScrollView;
+
+        // Инициализация RecyclerView для результатов поиска (вертикальный список)
+        searchResultsRecycler.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
+        searchAdapter = new RouteAdapter(getContext(), new ArrayList<>(), true); // true для вертикального списка
+        searchResultsRecycler.setAdapter(searchAdapter);
     }
 
-    private void startAnimations() {
-        // Анимация появления изображения
-        ObjectAnimator imageAnimator = ObjectAnimator.ofFloat(tutorialBinding.tutorialImage, "alpha", 0f, 1f);
-        imageAnimator.setDuration(1500);
-        imageAnimator.start();
+    private void setupSearch() {
+        searchBox.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
-        // Анимация появления текста
-        AlphaAnimation textAnimation = new AlphaAnimation(0f, 1f);
-        textAnimation.setDuration(1500);
-        textAnimation.setStartOffset(500);
-        tutorialBinding.tutorialText.startAnimation(textAnimation);
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
 
-        // Анимация появления кнопки
-        AlphaAnimation buttonAnimation = new AlphaAnimation(0f, 1f);
-        buttonAnimation.setDuration(1500);
-        buttonAnimation.setStartOffset(1000);
-        tutorialBinding.continueButton.startAnimation(buttonAnimation);
-    }
-
-    private void startBackgroundMusic() {
-        try {
-            if (mediaPlayer == null) {
-                mediaPlayer = MediaPlayer.create(requireContext(), R.raw.tutorial_music);
-                if (mediaPlayer != null) {
-                    mediaPlayer.setLooping(false);
-                    mediaPlayer.setOnCompletionListener(mp -> {
-                        Log.d(TAG, "Music completed");
-                        showMainContent();
-                        saveTutorialShown();
-                    });
-                    mediaPlayer.start();
-                    Log.d(TAG, "Music started successfully");
+            @Override
+            public void afterTextChanged(Editable s) {
+                String searchText = s.toString().toLowerCase().trim();
+                if (searchText.isEmpty()) {
+                    // Скрываем результаты поиска, показываем категории
+                    searchResultsRecycler.setVisibility(View.GONE);
+                    routesScrollView.setVisibility(View.VISIBLE);
                 } else {
-                    Log.e(TAG, "Failed to create MediaPlayer");
+                    // Показываем результаты поиска, скрываем категории
+                    searchRoutes(searchText);
+                    searchResultsRecycler.setVisibility(View.VISIBLE);
+                    routesScrollView.setVisibility(View.GONE);
                 }
             }
-        } catch (Exception e) {
-            Log.e(TAG, "Error in startBackgroundMusic: " + e.getMessage());
-            e.printStackTrace();
-        }
+        });
     }
 
-    private void stopBackgroundMusic() {
-        try {
-            if (mediaPlayer != null) {
-                mediaPlayer.stop();
-                mediaPlayer.release();
-                mediaPlayer = null;
-                Log.d(TAG, "Music stopped and released");
+    private void searchRoutes(String searchText) {
+        List<RouteModel> filteredRoutes = new ArrayList<>();
+        
+        for (RouteModel route : allRoutes) {
+            // Поиск по части слова в названии и описании
+            String name = route.getName() != null ? route.getName().toLowerCase() : "";
+            String description = route.getDescription() != null ? route.getDescription().toLowerCase() : "";
+            
+            if (name.contains(searchText) || description.contains(searchText)) {
+                filteredRoutes.add(route);
             }
-        } catch (Exception e) {
-            Log.e(TAG, "Error in stopBackgroundMusic: " + e.getMessage());
-            e.printStackTrace();
+        }
+        
+        searchAdapter.setRoutes(filteredRoutes);
+    }
+
+    private void setupFilterButton() {
+        filterButton.setOnClickListener(v -> {
+            Intent intent = new Intent(getContext(), RoutesFilterActivity.class);
+            filterLauncher.launch(intent);
+        });
+    }
+
+    private void applyFilters() {
+        // Фильтруем маршруты по выбранным критериям
+        for (String category : categoryRoutes.keySet()) {
+            List<RouteModel> originalRoutes = categoryRoutes.get(category);
+            List<RouteModel> filtered = new ArrayList<>();
+            
+            for (RouteModel route : originalRoutes) {
+                boolean matches = true;
+                
+                // Проверка цели поездки
+                if (selectedGoal != null && !selectedGoal.isEmpty()) {
+                    if (route.getGoal() == null || !route.getGoal().equals(selectedGoal)) {
+                        matches = false;
+                    }
+                }
+                
+                // Проверка количества дней
+                if (selectedDays != null && !selectedDays.isEmpty()) {
+                    if (route.getDaysRange() == null || !route.getDaysRange().equals(selectedDays)) {
+                        matches = false;
+                    }
+                }
+                
+                // Проверка количества человек
+                if (selectedPeopleCount != null && !selectedPeopleCount.isEmpty()) {
+                    if (route.getPeopleCount() == null || !route.getPeopleCount().equals(selectedPeopleCount)) {
+                        matches = false;
+                    }
+                }
+                
+                if (matches) {
+                    filtered.add(route);
+                }
+            }
+            
+            // Обновляем адаптер категории
+            if (categoryAdapters.containsKey(category)) {
+                categoryAdapters.get(category).setRoutes(filtered);
+            }
         }
     }
 
-    private void saveTutorialShown() {
-        SharedPreferences prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putBoolean(KEY_TUTORIAL_SHOWN, true);
-        editor.apply();
+    private void loadTestRoutes() {
+        // TODO: Заменить на загрузку из Firebase
+        // Тестовые данные для категории "С детьми"
+        List<RouteModel> childrenRoutes = new ArrayList<>();
+        childrenRoutes.add(new RouteModel(
+            "Старый и Новый Ижевск",
+            null,
+            "Познавательный маршрут по историческим местам города",
+            "С детьми",
+            "Экскурсия",
+            "1",
+            "2-4",
+            "3 часа",
+            "Легкий"
+        ));
+        childrenRoutes.add(new RouteModel(
+            "Парки и развлечения",
+            null,
+            "Маршрут по паркам и детским площадкам",
+            "С детьми",
+            "Отдых",
+            "1",
+            "2-4",
+            "4 часа",
+            "Легкий"
+        ));
+        childrenRoutes.add(new RouteModel(
+            "Музейный день",
+            null,
+            "Посещение музеев Ижевска",
+            "С детьми",
+            "Культура",
+            "1",
+            "2-4",
+            "5 часов",
+            "Легкий"
+        ));
+        categoryRoutes.put("С детьми", childrenRoutes);
+        allRoutes.addAll(childrenRoutes);
+
+        // Тестовые данные для категории "Романтические"
+        List<RouteModel> romanticRoutes = new ArrayList<>();
+        romanticRoutes.add(new RouteModel(
+            "Вечерний Ижевск",
+            null,
+            "Романтическая прогулка по вечернему городу",
+            "Романтические",
+            "Отдых",
+            "1",
+            "2",
+            "2 часа",
+            "Легкий"
+        ));
+        romanticRoutes.add(new RouteModel(
+            "Набережная и рестораны",
+            null,
+            "Прогулка по набережной с ужином",
+            "Романтические",
+            "Отдых",
+            "1",
+            "2",
+            "3 часа",
+            "Легкий"
+        ));
+        categoryRoutes.put("Романтические", romanticRoutes);
+        allRoutes.addAll(romanticRoutes);
+
+        // Тестовые данные для категории "Исторические"
+        List<RouteModel> historicalRoutes = new ArrayList<>();
+        historicalRoutes.add(new RouteModel(
+            "Исторический центр",
+            null,
+            "Экскурсия по историческим местам",
+            "Исторические",
+            "Экскурсия",
+            "2-3",
+            "1-10",
+            "6 часов",
+            "Средний"
+        ));
+        historicalRoutes.add(new RouteModel(
+            "Оружейная столица",
+            null,
+            "Маршрут по местам оружейного производства",
+            "Исторические",
+            "Культура",
+            "1",
+            "1-10",
+            "4 часа",
+            "Средний"
+        ));
+        categoryRoutes.put("Исторические", historicalRoutes);
+        allRoutes.addAll(historicalRoutes);
+    }
+
+    private void setupCategoryRecyclers() {
+        // Настройка RecyclerView для категории "С детьми"
+        RecyclerView childrenRecycler = binding.routesChildrenRecycler;
+        childrenRecycler.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+        RouteAdapter childrenAdapter = new RouteAdapter(getContext(), categoryRoutes.get("С детьми"));
+        childrenRecycler.setAdapter(childrenAdapter);
+        categoryRecyclers.put("С детьми", childrenRecycler);
+        categoryAdapters.put("С детьми", childrenAdapter);
+
+        // Настройка RecyclerView для категории "Романтические"
+        RecyclerView romanticRecycler = binding.routesRomanticRecycler;
+        romanticRecycler.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+        RouteAdapter romanticAdapter = new RouteAdapter(getContext(), categoryRoutes.get("Романтические"));
+        romanticRecycler.setAdapter(romanticAdapter);
+        categoryRecyclers.put("Романтические", romanticRecycler);
+        categoryAdapters.put("Романтические", romanticAdapter);
+
+        // Настройка RecyclerView для категории "Исторические"
+        RecyclerView historicalRecycler = binding.routesHistoricalRecycler;
+        historicalRecycler.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+        RouteAdapter historicalAdapter = new RouteAdapter(getContext(), categoryRoutes.get("Исторические"));
+        historicalRecycler.setAdapter(historicalAdapter);
+        categoryRecyclers.put("Исторические", historicalRecycler);
+        categoryAdapters.put("Исторические", historicalAdapter);
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        stopBackgroundMusic();
         binding = null;
-        tutorialBinding = null;
     }
 }

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/favorite_notification_card"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center_horizontal"
+    android:layout_marginTop="16dp"
+    app:cardCornerRadius="20dp"
+    app:cardElevation="8dp"
+    app:cardBackgroundColor="@color/pink">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp">
+
+        <ImageView
+            android:id="@+id/favorite_heart_icon"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/health"
+            android:tint="#FF0033"
+            android:layout_marginEnd="8dp" />
+
+        <TextView
+            android:id="@+id/favorite_notification_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Добавлено в избранное!"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:fontFamily="@font/nunito" />
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

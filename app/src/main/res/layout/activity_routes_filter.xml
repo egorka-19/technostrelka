@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Заголовок -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Фильтры маршрутов"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:fontFamily="@font/sfprodisplay1semibold"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Цель поездки -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Цель поездки"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:fontFamily="@font/sfprodisplay1semibold"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="12dp" />
+
+        <RadioGroup
+            android:id="@+id/goal_radio_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <RadioButton
+                android:id="@+id/goal_rest"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Отдых"
+                android:textSize="16sp"
+                android:fontFamily="@font/sfprodisplay1semibold"
+                android:buttonTint="#FF0033"
+                android:layout_marginBottom="8dp" />
+
+            <RadioButton
+                android:id="@+id/goal_excursion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Экскурсия"
+                android:textSize="16sp"
+                android:fontFamily="@font/sfprodisplay1semibold"
+                android:buttonTint="#FF0033"
+                android:layout_marginBottom="8dp" />
+
+            <RadioButton
+                android:id="@+id/goal_active"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Активный отдых"
+                android:textSize="16sp"
+                android:fontFamily="@font/sfprodisplay1semibold"
+                android:buttonTint="#FF0033"
+                android:layout_marginBottom="8dp" />
+
+            <RadioButton
+                android:id="@+id/goal_culture"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Культура"
+                android:textSize="16sp"
+                android:fontFamily="@font/sfprodisplay1semibold"
+                android:buttonTint="#FF0033" />
+        </RadioGroup>
+
+        <!-- Количество дней -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Количество дней"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:fontFamily="@font/sfprodisplay1semibold"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="12dp" />
+
+        <RadioGroup
+            android:id="@+id/days_radio_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <RadioButton
+                android:id="@+id/days_1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="1 день"
+                android:textSize="16sp"
+                android:fontFamily="@font/sfprodisplay1semibold"
+                android:buttonTint="#FF0033"
+                android:layout_marginBottom="8dp" />
+
+            <RadioButton
+                android:id="@+id/days_2_3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="2-3 дня"
+                android:textSize="16sp"
+                android:fontFamily="@font/sfprodisplay1semibold"
+                android:buttonTint="#FF0033"
+                android:layout_marginBottom="8dp" />
+
+            <RadioButton
+                android:id="@+id/days_3_5"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="3-5 дней"
+                android:textSize="16sp"
+                android:fontFamily="@font/sfprodisplay1semibold"
+                android:buttonTint="#FF0033"
+                android:layout_marginBottom="8dp" />
+
+            <RadioButton
+                android:id="@+id/days_7_plus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text=">7 дней"
+                android:textSize="16sp"
+                android:fontFamily="@font/sfprodisplay1semibold"
+                android:buttonTint="#FF0033" />
+        </RadioGroup>
+
+        <!-- Количество человек -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Количество человек"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:fontFamily="@font/sfprodisplay1semibold"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="12dp" />
+
+        <EditText
+            android:id="@+id/people_count_input"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:hint="Введите количество"
+            android:textSize="16sp"
+            android:fontFamily="@font/sfprodisplay1semibold"
+            android:inputType="number"
+            android:background="@drawable/edittext_rounded_corners"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp" />
+
+        <!-- Кнопка Применить -->
+        <TextView
+            android:id="@+id/apply_filter_button"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginTop="32dp"
+            android:gravity="center"
+            android:text="Применить"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:fontFamily="@font/sfprodisplay1semibold"
+            android:background="@drawable/button_red_rounded"
+            android:clickable="true"
+            android:focusable="true" />
+
+    </LinearLayout>
+</ScrollView>

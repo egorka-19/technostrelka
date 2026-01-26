@@ -102,7 +102,9 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:paddingStart="16dp"
-                android:paddingEnd="16dp" />
+                android:paddingTop="16dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="16dp" />
 
             <!-- Пример категории "Романтические" -->
             <TextView
@@ -122,8 +124,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp" />
+                android:padding="16dp" />
 
             <!-- Пример категории "Исторические" -->
             <TextView
@@ -143,8 +144,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp" />
+                android:padding="16dp" />
 
         </LinearLayout>
     </ScrollView>

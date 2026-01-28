@@ -3,9 +3,12 @@ package com.example.main_screen;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -29,6 +32,7 @@ import com.example.main_screen.model.EventReviewModel;
 import com.example.main_screen.model.PlaceModel;
 import com.example.main_screen.model.PopularModel;
 import com.example.main_screen.model.ViewAllModel;
+import com.example.main_screen.utils.BlurUtils;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -37,15 +41,18 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class product_card extends AppCompatActivity {
     ViewPager2 photoPager;
     LinearLayout indicators;
+    ImageView overlayBlurImage;
     TextView description, name, age, date, place, ratingValue;
     ImageButton backBtn, mapsButton;
     TextView addReviewButton;
     RecyclerView reviewsRecycler;
     EventReviewsAdapter reviewsAdapter;
+    private final AtomicInteger blurSeq = new AtomicInteger(0);
 
     ViewAllModel viewAllModel = null;
     PopularModel popularModel = null;
@@ -60,6 +67,7 @@ public class product_card extends AppCompatActivity {
         // Initialize views
         photoPager = findViewById(R.id.pro_card_img);
         indicators = findViewById(R.id.photo_indicators);
+        overlayBlurImage = findViewById(R.id.overlay_blur_image);
         description = findViewById(R.id.description);
         name = findViewById(R.id.name);
         age = findViewById(R.id.age);
@@ -124,6 +132,9 @@ public class product_card extends AppCompatActivity {
         loadRatingFromFirebase(); // рейтинг как на карточках (по отзывам)
         loadReviewsFromFirebase(); // отзывы (если есть структура)
 
+        // Обновляем blur после первой отрисовки
+        photoPager.post(this::updateOverlayBlurStrong);
+
         addReviewButton.setOnClickListener(v -> {
             // TODO: открыть экран добавления отзыва и сохранять в Firebase
             Toast.makeText(this, "TODO: Добавление отзыва", Toast.LENGTH_SHORT).show();
@@ -169,7 +180,66 @@ public class product_card extends AppCompatActivity {
                 super.onPageSelected(position);
                 setIndicatorActive(position);
             }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+                super.onPageScrollStateChanged(state);
+                // Обновляем blur только когда перелистывание завершилось,
+                // чтобы не ловить "полосы" и соседние страницы.
+                if (state == ViewPager2.SCROLL_STATE_IDLE) {
+                    updateOverlayBlurStrong();
+                }
+            }
         });
+    }
+
+    /**
+     * Реальный сильный blur для overlay.
+     * Делается на основе текущего содержимого ViewPager2 (фото).
+     *
+     * TODO: при переходе на Firebase-фото оставить тот же подход, но брать bitmap из текущей страницы.
+     */
+    private void updateOverlayBlurStrong() {
+        if (overlayBlurImage == null) return;
+        // Берём bitmap только текущей страницы, а не всего ViewPager2 (иначе попадают соседние фото)
+        RecyclerView rv = null;
+        if (photoPager.getChildCount() > 0 && photoPager.getChildAt(0) instanceof RecyclerView) {
+            rv = (RecyclerView) photoPager.getChildAt(0);
+        }
+        if (rv == null) return;
+
+        int position = photoPager.getCurrentItem();
+        RecyclerView.ViewHolder vh = rv.findViewHolderForAdapterPosition(position);
+        if (vh == null) {
+            // страница ещё не прикрепилась — попробуем чуть позже
+            photoPager.postDelayed(this::updateOverlayBlurStrong, 16);
+            return;
+        }
+
+        View itemView = vh.itemView;
+        ImageView photo = itemView.findViewById(R.id.photo);
+        if (photo == null || photo.getWidth() <= 0 || photo.getHeight() <= 0) return;
+
+        // Сильный blur лучше делать на уменьшенной копии сразу при рендере
+        final float downScale = 12f;
+        int w = Math.max(1, (int) (photo.getWidth() / downScale));
+        int h = Math.max(1, (int) (photo.getHeight() / downScale));
+        Bitmap small = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+        Canvas c = new Canvas(small);
+        c.scale((float) w / photo.getWidth(), (float) h / photo.getHeight());
+        photo.draw(c);
+
+        final int requestId = blurSeq.incrementAndGet();
+        new Thread(() -> {
+            Bitmap blurred = BlurUtils.stackBlur(small, 26); // сильнее blur
+            runOnUiThread(() -> {
+                // защита от гонок: если уже пришёл более новый запрос, этот результат игнорируем
+                if (requestId != blurSeq.get()) {
+                    return;
+                }
+                overlayBlurImage.setImageBitmap(blurred);
+            });
+        }).start();
     }
 
     private void setupIndicators(int count) {

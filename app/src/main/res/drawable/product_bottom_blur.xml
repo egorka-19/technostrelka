@@ -9,5 +9,6 @@
         android:bottomLeftRadius="0dp"
         android:bottomRightRadius="0dp" />
     <!-- TODO: при необходимости заменить на настоящий blur (Firebase/RenderEffect/BlurView) -->
-    <blur android:radius="50dp" />
+    <!-- Сильный blur -->
+    <blur android:radius="120dp" />
 </shape>

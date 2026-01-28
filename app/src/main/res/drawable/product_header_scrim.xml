@@ -4,5 +4,6 @@
     <solid android:color="#8F131316" />
     <corners android:radius="24dp" />
     <!-- TODO: при необходимости заменить на настоящий blur (RenderEffect/BlurView) -->
-    <blur android:radius="40dp" />
+    <!-- Сильный blur, чтобы совпадало с overlay -->
+    <blur android:radius="90dp" />
 </shape>

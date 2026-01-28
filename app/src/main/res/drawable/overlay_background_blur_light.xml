@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Светлая полупрозрачная подложка, чтобы было видно фото под ней -->
+    <solid android:color="#EFFFFFFF" />
+    <corners
+        android:topLeftRadius="30dp"
+        android:topRightRadius="30dp"
+        android:bottomLeftRadius="0dp"
+        android:bottomRightRadius="0dp" />
+    <!-- TODO: при необходимости заменить на настоящий blur (Firebase/RenderEffect/BlurView) -->
+    <blur android:radius="40dp" />
+</shape>

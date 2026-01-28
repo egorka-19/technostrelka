@@ -89,12 +89,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="10dp"
+                android:fontFamily="@font/sfprodisplay1semibold"
                 android:text="С детьми"
-                android:textSize="24sp"
-                android:textStyle="bold"
                 android:textColor="@color/black"
-                android:fontFamily="@font/sfprodisplay1semibold" />
+                android:textSize="24sp"
+                android:textStyle="bold" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/routes_children_recycler"
@@ -112,12 +112,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="10dp"
+                android:fontFamily="@font/sfprodisplay1semibold"
                 android:text="Романтические"
-                android:textSize="24sp"
-                android:textStyle="bold"
                 android:textColor="@color/black"
-                android:fontFamily="@font/sfprodisplay1semibold" />
+                android:textSize="24sp"
+                android:textStyle="bold" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/routes_romantic_recycler"
@@ -132,12 +132,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="10dp"
+                android:fontFamily="@font/sfprodisplay1semibold"
                 android:text="Исторические"
-                android:textSize="24sp"
-                android:textStyle="bold"
                 android:textColor="@color/black"
-                android:fontFamily="@font/sfprodisplay1semibold" />
+                android:textSize="24sp"
+                android:textStyle="bold" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/routes_historical_recycler"

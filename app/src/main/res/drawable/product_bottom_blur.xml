@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Тёмный блюр-оверлей как под плашкой заголовка -->
+    <!-- #131316 с прозрачностью 56% (alpha=0x8F) -->
+    <solid android:color="#8F131316" />
+    <corners
+        android:topLeftRadius="30dp"
+        android:topRightRadius="30dp"
+        android:bottomLeftRadius="0dp"
+        android:bottomRightRadius="0dp" />
+    <!-- TODO: при необходимости заменить на настоящий blur (Firebase/RenderEffect/BlurView) -->
+    <blur android:radius="50dp" />
+</shape>

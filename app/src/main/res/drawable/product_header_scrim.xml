@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- #131316 с прозрачностью 56% (alpha=0x8F) -->
+    <solid android:color="#8F131316" />
+    <corners android:radius="24dp" />
+    <!-- TODO: при необходимости заменить на настоящий blur (RenderEffect/BlurView) -->
+    <blur android:radius="40dp" />
+</shape>

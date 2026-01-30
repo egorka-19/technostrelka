@@ -225,14 +225,12 @@ public class ViewAllAdapters extends RecyclerView.Adapter<ViewAllAdapters.ViewHo
                         holder.starIcon.setVisibility(View.VISIBLE);
                         holder.eventRating.setVisibility(View.VISIBLE);
                     } else {
-                        // TODO: Если нет отзывов, показываем значение по умолчанию 5.0
-                        holder.eventRating.setText("5.0");
+                        holder.eventRating.setText("0");
                         holder.starIcon.setVisibility(View.VISIBLE);
                         holder.eventRating.setVisibility(View.VISIBLE);
                     }
                 } else {
-                    // TODO: Если нет отзывов, показываем значение по умолчанию 5.0
-                    holder.eventRating.setText("5.0");
+                    holder.eventRating.setText("0");
                     holder.starIcon.setVisibility(View.VISIBLE);
                     holder.eventRating.setVisibility(View.VISIBLE);
                 }

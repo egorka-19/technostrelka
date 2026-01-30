@@ -287,6 +287,17 @@
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
+                    <TextView
+                        android:id="@+id/reviews_empty"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:fontFamily="@font/sfprodisplay1medium"
+                        android:text="Здесь пока ничего нет. Оставьте вы первый отзыв!"
+                        android:textColor="#B3FFFFFF"
+                        android:textSize="14sp"
+                        android:visibility="visible" />
+
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/reviews_recycler"
                         android:layout_width="match_parent"

@@ -23,6 +23,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.CompositePageTransformer;
 import androidx.viewpager2.widget.MarginPageTransformer;
+import androidx.fragment.app.FragmentManager;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.bumptech.glide.Glide;
@@ -53,6 +54,8 @@ public class product_card extends AppCompatActivity {
     RecyclerView reviewsRecycler;
     EventReviewsAdapter reviewsAdapter;
     private final AtomicInteger blurSeq = new AtomicInteger(0);
+    /** Список фото для ViewPager2: основное фото + фото из отзывов пользователей */
+    private List<Object> photoList;
 
     ViewAllModel viewAllModel = null;
     PopularModel popularModel = null;
@@ -131,36 +134,31 @@ public class product_card extends AppCompatActivity {
 
         loadRatingFromFirebase(); // рейтинг как на карточках (по отзывам)
         loadReviewsFromFirebase(); // отзывы (если есть структура)
+        loadReviewPhotosFromFirebase(); // фото из отзывов в pro_card_img
 
         // Обновляем blur после первой отрисовки
         photoPager.post(this::updateOverlayBlurStrong);
 
-        addReviewButton.setOnClickListener(v -> {
-            // TODO: открыть экран добавления отзыва и сохранять в Firebase
-            Toast.makeText(this, "TODO: Добавление отзыва", Toast.LENGTH_SHORT).show();
-        });
+        addReviewButton.setOnClickListener(v -> openAddReviewSheet());
     }
 
     private void setupPhotos() {
-        List<Object> images = new ArrayList<>();
+        photoList = new ArrayList<>();
 
-        // TODO: Здесь заменить на список фотографий из Firebase для конкретного места
         // Первая фотка — основная из модели (если есть)
         if (viewAllModel != null && viewAllModel.getImg_url() != null && !viewAllModel.getImg_url().isEmpty()) {
-            images.add(viewAllModel.getImg_url());
+            photoList.add(viewAllModel.getImg_url());
         } else if (popularModel != null && popularModel.getImg_url() != null && !popularModel.getImg_url().isEmpty()) {
-            images.add(popularModel.getImg_url());
+            photoList.add(popularModel.getImg_url());
         } else if (placeModel != null && placeModel.getImageUrl() != null && !placeModel.getImageUrl().isEmpty()) {
-            images.add(placeModel.getImageUrl());
+            photoList.add(placeModel.getImageUrl());
         } else {
-            images.add(R.drawable.izo);
+            photoList.add(R.drawable.izo);
         }
 
-        // Рандомные/временные фотки из проекта
-        images.add(R.drawable.izo);
-        images.add(R.drawable.card);
+        // Остальные фото подгружаются из отзывов пользователей (loadReviewPhotosFromFirebase)
 
-        ProductImagePagerAdapter adapter = new ProductImagePagerAdapter(this, images);
+        ProductImagePagerAdapter adapter = new ProductImagePagerAdapter(this, photoList);
         photoPager.setAdapter(adapter);
         photoPager.setOffscreenPageLimit(3);
 
@@ -173,7 +171,7 @@ public class product_card extends AppCompatActivity {
         });
         photoPager.setPageTransformer(transformer);
 
-        setupIndicators(images.size());
+        setupIndicators(photoList.size());
         photoPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageSelected(int position) {
@@ -267,24 +265,7 @@ public class product_card extends AppCompatActivity {
     }
 
     private void setupReviews() {
-        // Заглушки, если Firebase ещё не настроен под отзывы
-        // TODO: убрать заглушки, когда отзывы будут приходить из Firebase
         List<EventReviewModel> list = new ArrayList<>();
-        list.add(new EventReviewModel(
-                "Суяков Егор",
-                "", // TODO: avatarUrl из Firebase
-                "12.03.24",
-                5.0f,
-                "Постановка необычная, интересная. Понравилось все! Спасибо артистам - играли великолепно."
-        ));
-        list.add(new EventReviewModel(
-                "Наталия",
-                "", // TODO: avatarUrl из Firebase
-                "11.03.24",
-                5.0f,
-                "Интересная композиция, не новая, но динамичная. Картинка замечательная."
-        ));
-
         RecyclerView.LayoutManager lm = new LinearLayoutManager(this, RecyclerView.VERTICAL, false);
         reviewsRecycler.setLayoutManager(lm);
         reviewsAdapter = new EventReviewsAdapter(this, list);
@@ -295,7 +276,8 @@ public class product_card extends AppCompatActivity {
         String eventName = getEventName();
         String category = getCategoryTypeForFirebase(getEventType());
         if (eventName == null || eventName.isEmpty()) {
-            ratingValue.setText("5.0"); // TODO
+            ratingValue.setText("0");
+            updateReviewsEmptyState(0);
             return;
         }
 
@@ -324,15 +306,76 @@ public class product_card extends AppCompatActivity {
                     double avg = total / count;
                     ratingValue.setText(String.format(java.util.Locale.US, "%.1f", avg));
                 } else {
-                    // TODO: если отзывов нет — дефолт 5.0
-                    ratingValue.setText("5.0");
+                    ratingValue.setText("0");
                 }
+                updateReviewsEmptyState(count);
             }
 
             @Override
             public void onCancelled(DatabaseError error) {
-                // TODO: если не удалось загрузить — дефолт 5.0
-                ratingValue.setText("5.0");
+                ratingValue.setText("0");
+                updateReviewsEmptyState(0);
+            }
+        });
+    }
+
+    private void updateReviewsEmptyState(int reviewCount) {
+        TextView reviewsEmpty = findViewById(R.id.reviews_empty);
+        if (reviewsEmpty != null) {
+            reviewsEmpty.setVisibility(reviewCount == 0 ? View.VISIBLE : View.GONE);
+        }
+    }
+
+    /**
+     * Подгружает фото из отзывов пользователей и добавляет их в ViewPager2 (pro_card_img).
+     */
+    private void loadReviewPhotosFromFirebase() {
+        String eventName = getEventName();
+        String category = getCategoryTypeForFirebase(getEventType());
+        if (eventName == null || eventName.isEmpty() || photoList == null) return;
+
+        DatabaseReference ref = FirebaseDatabase.getInstance()
+                .getReference("Reviews")
+                .child(category)
+                .child(eventName);
+
+        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                List<String> reviewPhotoUrls = new ArrayList<>();
+                for (DataSnapshot userSnap : snapshot.getChildren()) {
+                    DataSnapshot photoUrlsSnap = userSnap.child("photoUrls");
+                    if (!photoUrlsSnap.exists()) continue;
+                    for (DataSnapshot urlSnap : photoUrlsSnap.getChildren()) {
+                        Object val = urlSnap.getValue();
+                        if (val != null) {
+                            String url = String.valueOf(val);
+                            if (!url.isEmpty() && !"null".equals(url)) {
+                                reviewPhotoUrls.add(url);
+                            }
+                        }
+                    }
+                }
+
+                runOnUiThread(() -> {
+                    if (photoList == null) return;
+                    // Первый элемент — основное фото места, остальное заменяем на фото из отзывов
+                    Object mainPhoto = photoList.isEmpty() ? null : photoList.get(0);
+                    photoList.clear();
+                    if (mainPhoto != null) photoList.add(mainPhoto);
+                    photoList.addAll(reviewPhotoUrls);
+                    RecyclerView.Adapter<?> adapter = photoPager.getAdapter();
+                    if (adapter != null) {
+                        adapter.notifyDataSetChanged();
+                    }
+                    setupIndicators(photoList.size());
+                    photoPager.post(product_card.this::updateOverlayBlurStrong);
+                });
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+                // оставляем текущий список фото
             }
         });
     }
@@ -377,9 +420,10 @@ public class product_card extends AppCompatActivity {
                     list.add(new EventReviewModel(userName, avatarUrl, date, rating, text));
                 }
 
-                if (!list.isEmpty() && reviewsAdapter != null) {
+                if (reviewsAdapter != null) {
                     reviewsAdapter.setItems(list);
                 }
+                updateReviewsEmptyState(list.size());
             }
 
             @Override
@@ -399,6 +443,7 @@ public class product_card extends AppCompatActivity {
     private String getEventType() {
         if (viewAllModel != null) return viewAllModel.getType();
         if (popularModel != null) return popularModel.getType();
+        if (placeModel != null) return placeModel.getType();
         return null;
     }
 
@@ -458,5 +503,22 @@ public class product_card extends AppCompatActivity {
         if (value == null) return fallback;
         String v = value.trim();
         return v.isEmpty() ? fallback : v;
+    }
+
+    private void openAddReviewSheet() {
+        String eventName = getEventName();
+        String category = getCategoryTypeForFirebase(getEventType());
+        if (eventName == null || eventName.isEmpty()) {
+            Toast.makeText(this, "Не удалось определить место", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        AddReviewBottomSheetFragment sheet = AddReviewBottomSheetFragment.newInstance(eventName, category);
+        sheet.setOnReviewPublishedListener(() -> {
+            loadRatingFromFirebase();
+            loadReviewsFromFirebase();
+            loadReviewPhotosFromFirebase();
+        });
+        FragmentManager fm = getSupportFragmentManager();
+        sheet.show(fm, "AddReviewBottomSheet");
     }
 }

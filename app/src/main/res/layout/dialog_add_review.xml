@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bottom_sheet_review_bg"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingTop="24dp"
+        android:paddingBottom="24dp">
+
+        <!-- Название места (блеклым серым) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/icon_geo"
+                android:tint="#9E9E9E" />
+
+            <TextView
+                android:id="@+id/add_review_place_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:fontFamily="@font/sfprodisplay1medium"
+                android:textColor="#9E9E9E"
+                android:textSize="14sp"
+                tools:text="Ресторан PANORAMA" />
+        </LinearLayout>
+
+        <!-- Звёзды (кликабельные) -->
+        <LinearLayout
+            android:id="@+id/add_review_stars_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/star_1"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_marginEnd="4dp"
+                android:padding="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:src="@drawable/star"
+                android:contentDescription="1 звезда"
+                android:tint="#C0C0C0" />
+
+            <ImageView
+                android:id="@+id/star_2"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_marginEnd="4dp"
+                android:padding="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:src="@drawable/star"
+                android:contentDescription="2 звезды"
+                android:tint="#C0C0C0" />
+
+            <ImageView
+                android:id="@+id/star_3"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_marginEnd="4dp"
+                android:padding="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:src="@drawable/star"
+                android:contentDescription="3 звезды"
+                android:tint="#C0C0C0" />
+
+            <ImageView
+                android:id="@+id/star_4"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_marginEnd="4dp"
+                android:padding="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:src="@drawable/star"
+                android:contentDescription="4 звезды"
+                android:tint="#C0C0C0" />
+
+            <ImageView
+                android:id="@+id/star_5"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:padding="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:src="@drawable/star"
+                android:contentDescription="5 звёзд"
+                android:tint="#C0C0C0" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/add_review_star_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:fontFamily="@font/sfprodisplay1medium"
+            android:textColor="#9E9E9E"
+            android:textSize="12sp"
+            tools:text="Хорошее место" />
+
+        <!-- Текст отзыва (растягивается по содержимому) -->
+        <EditText
+            android:id="@+id/add_review_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:minLines="4"
+            android:maxLines="10"
+            android:gravity="top|start"
+            android:background="@drawable/edittext_rounded_corners"
+            android:padding="14dp"
+            android:fontFamily="@font/sfprodisplay1medium"
+            android:textColor="@android:color/black"
+            android:textColorHint="#9E9E9E"
+            android:textSize="14sp"
+            android:inputType="textMultiLine|textCapSentences"
+            android:hint="Напишите ваш отзыв..."
+            android:scrollbars="vertical" />
+
+        <!-- Превью фотографий (до 3) -->
+        <LinearLayout
+            android:id="@+id/add_review_photos_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <ImageView
+                android:id="@+id/photo_preview_1"
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:layout_marginEnd="8dp"
+                android:scaleType="centerCrop"
+                android:background="@drawable/rounded_corners"
+                android:contentDescription="Фото 1" />
+
+            <ImageView
+                android:id="@+id/photo_preview_2"
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:layout_marginEnd="8dp"
+                android:scaleType="centerCrop"
+                android:background="@drawable/rounded_corners"
+                android:visibility="gone"
+                android:contentDescription="Фото 2" />
+
+            <ImageView
+                android:id="@+id/photo_preview_3"
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:scaleType="centerCrop"
+                android:background="@drawable/rounded_corners"
+                android:visibility="gone"
+                android:contentDescription="Фото 3" />
+        </LinearLayout>
+
+        <!-- Кнопки: камера + Опубликовать отзыв -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <FrameLayout
+                android:id="@+id/add_review_camera_btn"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:background="@drawable/button_red_rounded"
+                android:clickable="true"
+                android:focusable="true">
+
+                <ImageView
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_camera"
+                    android:tint="@android:color/white"
+                    android:contentDescription="Добавить фото" />
+            </FrameLayout>
+
+            <TextView
+                android:id="@+id/add_review_publish_btn"
+                android:layout_width="0dp"
+                android:layout_height="56dp"
+                android:layout_weight="1"
+                android:layout_marginStart="12dp"
+                android:background="@drawable/button_red_rounded"
+                android:clickable="true"
+                android:focusable="true"
+                android:fontFamily="@font/sfprodisplay1medium"
+                android:gravity="center"
+                android:text="Опубликовать отзыв"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

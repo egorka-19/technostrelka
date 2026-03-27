@@ -12,7 +12,6 @@ import java.util.Map;
 import com.example.main_screen.bottomnav.events.ThemainscreenFragment;
 import com.example.main_screen.bottomnav.home.home_fragment;
 import com.example.main_screen.bottomnav.plus.PlusFragment;
-import com.example.main_screen.bottomnav.fav.fav_fragment;
 import com.example.main_screen.bottomnav.profile.ProfileFragment;
 import com.example.main_screen.databinding.ActivityMainBinding;
 import com.google.firebase.auth.FirebaseAuth;
@@ -38,7 +37,6 @@ public class MainActivity extends AppCompatActivity {
         fragmentMap.put(R.id.profile, new ProfileFragment());
         fragmentMap.put(R.id.events, new ThemainscreenFragment());
         fragmentMap.put(R.id.home, new home_fragment());
-        fragmentMap.put(R.id.favourite, new fav_fragment());
         fragmentMap.put(R.id.plus, new PlusFragment());
         binding.bottomnav.setOnItemSelectedListener(item -> {
             Fragment fragment = fragmentMap.get(item.getItemId());

@@ -14,20 +14,18 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.example.main_screen.api.ApiClient;
+import com.example.main_screen.api.TokenStore;
 import com.example.main_screen.model.ViewAllModel;
 import com.example.main_screen.R;
 import com.example.main_screen.product_card;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import java.util.List;
+import java.util.concurrent.Executors;
 
 public class ViewAllAdapters extends RecyclerView.Adapter<ViewAllAdapters.ViewHolder> {
     Context context;
@@ -61,8 +59,7 @@ public class ViewAllAdapters extends RecyclerView.Adapter<ViewAllAdapters.ViewHo
         // Название события
         holder.eventName.setText(item.getName());
 
-        // Загрузка рейтинга из отзывов клиентов
-        loadRatingFromReviews(item, holder);
+        applyRatingFromModel(item, holder);
 
         // Возрастные ограничения
         String age = item.getAge();
@@ -93,7 +90,6 @@ public class ViewAllAdapters extends RecyclerView.Adapter<ViewAllAdapters.ViewHo
             holder.eventAddress.setText("Адрес не указан");
         }
 
-        // Проверка состояния избранного из Firebase
         checkFavoriteStatus(item, holder);
 
         // Обработчик клика на карточку
@@ -116,43 +112,12 @@ public class ViewAllAdapters extends RecyclerView.Adapter<ViewAllAdapters.ViewHo
         });
     }
 
-    /**
-     * Проверка состояния избранного из Firebase
-     */
     private void checkFavoriteStatus(ViewAllModel item, ViewHolder holder) {
-        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+        if (!TokenStore.get(context).hasAccessToken()) {
             setFavoriteIconState(holder, false);
             return;
         }
-
-        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        String eventName = item.getName();
-        String categoryType = getCategoryTypeForFirebase(item.getType());
-
-        DatabaseReference favoriteRef = FirebaseDatabase.getInstance()
-                .getReference("Reviews")
-                .child(categoryType)
-                .child(eventName)
-                .child(userId)
-                .child("lovest");
-
-        favoriteRef.addListenerForSingleValueEvent(new com.google.firebase.database.ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull com.google.firebase.database.DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    Integer lovestValue = snapshot.getValue(Integer.class);
-                    boolean isFavorite = lovestValue != null && lovestValue == 1;
-                    setFavoriteIconState(holder, isFavorite);
-                } else {
-                    setFavoriteIconState(holder, false);
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull com.google.firebase.database.DatabaseError error) {
-                setFavoriteIconState(holder, false);
-            }
-        });
+        setFavoriteIconState(holder, item.isFavorite());
     }
 
     /**
@@ -174,137 +139,44 @@ public class ViewAllAdapters extends RecyclerView.Adapter<ViewAllAdapters.ViewHo
         }
     }
 
-    /**
-     * Загрузка рейтинга из отзывов клиентов
-     */
-    private void loadRatingFromReviews(ViewAllModel item, ViewHolder holder) {
-        String eventName = item.getName();
-        String categoryType = getCategoryTypeForFirebase(item.getType());
-        
-        DatabaseReference reviewsRef = FirebaseDatabase.getInstance()
-                .getReference("Reviews")
-                .child(categoryType)
-                .child(eventName);
-        
-        reviewsRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    double totalRating = 0.0;
-                    int reviewCount = 0;
-                    
-                    // Проходим по всем пользователям, оставившим отзывы
-                    for (DataSnapshot userSnapshot : snapshot.getChildren()) {
-                        if (userSnapshot.hasChild("rating")) {
-                            Object ratingObj = userSnapshot.child("rating").getValue();
-                            if (ratingObj != null) {
-                                try {
-                                    double rating = 0.0;
-                                    if (ratingObj instanceof Number) {
-                                        rating = ((Number) ratingObj).doubleValue();
-                                    } else if (ratingObj instanceof String) {
-                                        rating = Double.parseDouble((String) ratingObj);
-                                    }
-                                    
-                                    if (rating > 0 && rating <= 5) {
-                                        totalRating += rating;
-                                        reviewCount++;
-                                    }
-                                } catch (Exception e) {
-                                    android.util.Log.e("RatingError", "Error parsing rating", e);
-                                }
-                            }
-                        }
-                    }
-                    
-                    if (reviewCount > 0) {
-                        double averageRating = totalRating / reviewCount;
-                        // Округляем до 1 знака после запятой
-                        String ratingText = String.format("%.1f", averageRating);
-                        holder.eventRating.setText(ratingText);
-                        holder.starIcon.setVisibility(View.VISIBLE);
-                        holder.eventRating.setVisibility(View.VISIBLE);
-                    } else {
-                        holder.eventRating.setText("0");
-                        holder.starIcon.setVisibility(View.VISIBLE);
-                        holder.eventRating.setVisibility(View.VISIBLE);
-                    }
-                } else {
-                    holder.eventRating.setText("0");
-                    holder.starIcon.setVisibility(View.VISIBLE);
-                    holder.eventRating.setVisibility(View.VISIBLE);
-                }
-            }
-            
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                android.util.Log.e("RatingError", "Error loading rating", error.toException());
-                holder.starIcon.setVisibility(View.GONE);
-                holder.eventRating.setVisibility(View.GONE);
-            }
-        });
+    private void applyRatingFromModel(ViewAllModel item, ViewHolder holder) {
+        String r = item.getRating();
+        if (r == null || r.isEmpty()) {
+            r = "0";
+        }
+        holder.eventRating.setText(r);
+        holder.starIcon.setVisibility(View.VISIBLE);
+        holder.eventRating.setVisibility(View.VISIBLE);
     }
 
-    /**
-     * Переключение состояния избранного
-     */
     private void toggleFavorite(ViewAllModel item, ViewHolder holder) {
-        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+        if (item.getServerId() == null || item.getServerId().isEmpty()) {
+            return;
+        }
+        if (!TokenStore.get(context).hasAccessToken()) {
             return;
         }
 
-        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        String eventName = item.getName();
-        String categoryType = getCategoryTypeForFirebase(item.getType());
-
-        DatabaseReference favoriteRef = FirebaseDatabase.getInstance()
-                .getReference("Reviews")
-                .child(categoryType)
-                .child(eventName)
-                .child(userId)
-                .child("lovest");
-
         boolean isCurrentlyFavorite = holder.favoriteIcon.getTag() != null && holder.favoriteIcon.getTag().equals("favorite");
-        int newValue = isCurrentlyFavorite ? 0 : 1;
 
-        favoriteRef.setValue(newValue).addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                if (newValue == 1) {
-                    // Добавлено в избранное - заливаем красным цветом FF0033
-                    setFavoriteIconState(holder, true);
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                if (isCurrentlyFavorite) {
+                    ApiClient.get(context).removeFavorite(item.getServerId()).execute();
                 } else {
-                    // Удалено из избранного - убираем заливку
-                    setFavoriteIconState(holder, false);
+                    ApiClient.get(context).addFavorite(item.getServerId()).execute();
                 }
+                if (context instanceof AppCompatActivity) {
+                    ((AppCompatActivity) context).runOnUiThread(() -> {
+                        boolean newFav = !isCurrentlyFavorite;
+                        setFavoriteIconState(holder, newFav);
+                        item.setFavorite(newFav);
+                    });
+                }
+            } catch (Exception e) {
+                android.util.Log.e("Api", "favorite toggle", e);
             }
         });
-    }
-
-    /**
-     * Преобразование типа категории для Firebase
-     */
-    private String getCategoryTypeForFirebase(String type) {
-        if (type == null) return "Other";
-        
-        switch (type) {
-            case "Кино":
-            case "Cinema":
-                return "Cinema";
-            case "Театр":
-            case "Theater":
-                return "Theater";
-            case "Парк":
-            case "Park":
-                return "Park";
-            case "Ресторан":
-            case "Restaurant":
-                return "Restaraunt";
-            case "Музей":
-            case "Museum":
-                return "Museum";
-            default:
-                return "Other";
-        }
     }
 
     @Override

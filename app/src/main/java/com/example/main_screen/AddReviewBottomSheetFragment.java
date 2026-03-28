@@ -18,33 +18,33 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.bumptech.glide.Glide;
+import com.example.main_screen.api.ApiClient;
+import com.example.main_screen.api.TokenStore;
+import com.example.main_screen.api.dto.ReviewDto;
+import com.example.main_screen.api.dto.ReviewUpsertBody;
+import com.example.main_screen.api.dto.UrlsResponseDto;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
 
-import java.text.SimpleDateFormat;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.concurrent.Executors;
+
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
+import retrofit2.Response;
 
 public class AddReviewBottomSheetFragment extends BottomSheetDialogFragment {
 
-    private static final String ARG_EVENT_NAME = "eventName";
-    private static final String ARG_CATEGORY = "category";
+    private static final String ARG_EVENT_ID = "eventId";
+    private static final String ARG_DISPLAY_NAME = "displayName";
     private static final int MAX_PHOTOS = 3;
 
-    private String eventName;
-    private String category;
+    private String eventId;
+    private String displayName;
 
     private TextView placeNameText;
     private ImageView star1, star2, star3, star4, star5;
@@ -70,11 +70,11 @@ public class AddReviewBottomSheetFragment extends BottomSheetDialogFragment {
         this.listener = listener;
     }
 
-    public static AddReviewBottomSheetFragment newInstance(String eventName, String category) {
+    public static AddReviewBottomSheetFragment newInstance(String eventId, String displayName) {
         AddReviewBottomSheetFragment f = new AddReviewBottomSheetFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_EVENT_NAME, eventName);
-        args.putString(ARG_CATEGORY, category);
+        args.putString(ARG_EVENT_ID, eventId);
+        args.putString(ARG_DISPLAY_NAME, displayName != null ? displayName : "");
         f.setArguments(args);
         return f;
     }
@@ -83,8 +83,8 @@ public class AddReviewBottomSheetFragment extends BottomSheetDialogFragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            eventName = getArguments().getString(ARG_EVENT_NAME, "");
-            category = getArguments().getString(ARG_CATEGORY, "Other");
+            eventId = getArguments().getString(ARG_EVENT_ID, "");
+            displayName = getArguments().getString(ARG_DISPLAY_NAME, "");
         }
         pickImageLauncher = registerForActivityResult(
                 new ActivityResultContracts.GetContent(),
@@ -121,9 +121,9 @@ public class AddReviewBottomSheetFragment extends BottomSheetDialogFragment {
         cameraBtn = view.findViewById(R.id.add_review_camera_btn);
         publishBtn = view.findViewById(R.id.add_review_publish_btn);
 
-        placeNameText.setText(eventName != null ? eventName : "");
+        placeNameText.setText(displayName != null ? displayName : "");
 
-        View[] stars = { star1, star2, star3, star4, star5 };
+        View[] stars = {star1, star2, star3, star4, star5};
         for (int i = 0; i < stars.length; i++) {
             final int rating = i + 1;
             stars[i].setOnClickListener(v -> setRating(rating));
@@ -150,7 +150,7 @@ public class AddReviewBottomSheetFragment extends BottomSheetDialogFragment {
         star4.setColorFilter(rating >= 4 ? gold : gray);
         star5.setColorFilter(rating >= 5 ? gold : gray);
 
-        String[] labels = { "", "Плохо", "Нормально", "Хорошее место", "Отлично", "Превосходно" };
+        String[] labels = {"", "Плохо", "Нормально", "Хорошее место", "Отлично", "Превосходно"};
         starLabel.setText(rating >= 0 && rating < labels.length ? labels[rating] : "");
     }
 
@@ -187,131 +187,96 @@ public class AddReviewBottomSheetFragment extends BottomSheetDialogFragment {
             return;
         }
 
-        if (eventName == null || eventName.isEmpty()) {
-            Toast.makeText(requireContext(), "Ошибка: неизвестное место", Toast.LENGTH_SHORT).show();
+        if (eventId == null || eventId.isEmpty()) {
+            Toast.makeText(requireContext(), "Ошибка: нет id события", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+        if (!TokenStore.get(requireContext()).hasAccessToken()) {
             Toast.makeText(requireContext(), "Войдите в аккаунт, чтобы оставить отзыв", Toast.LENGTH_SHORT).show();
             dismiss();
             return;
         }
 
-        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         publishBtn.setEnabled(false);
 
-        // Сначала загружаем имя пользователя из Firebase (Users/username), чтобы не подставлять почту
-        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("Users").child(uid);
-        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                String userName = null;
-                if (snapshot.hasChild("username")) {
-                    Object val = snapshot.child("username").getValue();
-                    if (val != null) {
-                        userName = String.valueOf(val).trim();
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                List<String> uploadedUrls = new ArrayList<>();
+                if (!photoUris.isEmpty()) {
+                    List<MultipartBody.Part> parts = new ArrayList<>();
+                    MediaType imageType = MediaType.parse("image/jpeg");
+                    for (int i = 0; i < photoUris.size(); i++) {
+                        Uri uri = photoUris.get(i);
+                        byte[] bytes = readUriBytes(uri);
+                        if (bytes == null || bytes.length == 0) {
+                            continue;
+                        }
+                        RequestBody body = RequestBody.create(imageType, bytes);
+                        parts.add(MultipartBody.Part.createFormData("files", "photo_" + i + ".jpg", body));
+                    }
+                    if (!parts.isEmpty()) {
+                        RequestBody eventIdBody = RequestBody.create(
+                                MediaType.parse("text/plain"), eventId);
+                        Response<UrlsResponseDto> up = ApiClient.get(requireContext())
+                                .uploadReviewPhotos(eventIdBody, parts)
+                                .execute();
+                        if (up.isSuccessful() && up.body() != null && up.body().urls != null) {
+                            uploadedUrls.addAll(up.body().urls);
+                        } else {
+                            requireActivity().runOnUiThread(() ->
+                                    Toast.makeText(requireContext(), "Не удалось загрузить фото", Toast.LENGTH_SHORT).show());
+                            requireActivity().runOnUiThread(() -> publishBtn.setEnabled(true));
+                            return;
+                        }
                     }
                 }
-                if (TextUtils.isEmpty(userName)) {
-                    userName = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
-                }
-                if (TextUtils.isEmpty(userName)) {
-                    userName = FirebaseAuth.getInstance().getCurrentUser().getEmail();
-                }
-                if (TextUtils.isEmpty(userName)) {
-                    userName = "Пользователь";
-                }
-                String date = new SimpleDateFormat("dd.MM.yy", Locale.getDefault()).format(new Date());
-                String avatarUrl = "";
-                if (snapshot.hasChild("profileImage")) {
-                    Object img = snapshot.child("profileImage").getValue();
-                    if (img != null) avatarUrl = String.valueOf(img);
-                }
-                if (photoUris.isEmpty()) {
-                    saveReviewToFirebase(uid, userName, date, avatarUrl, selectedRating, text, new ArrayList<>());
-                } else {
-                    uploadPhotosAndSave(uid, userName, date, avatarUrl, selectedRating, text);
-                }
-            }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                publishBtn.setEnabled(true);
-                String userName = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
-                if (TextUtils.isEmpty(userName)) userName = FirebaseAuth.getInstance().getCurrentUser().getEmail();
-                if (TextUtils.isEmpty(userName)) userName = "Пользователь";
-                String date = new SimpleDateFormat("dd.MM.yy", Locale.getDefault()).format(new Date());
-                if (photoUris.isEmpty()) {
-                    saveReviewToFirebase(uid, userName, date, "", selectedRating, text, new ArrayList<>());
-                } else {
-                    uploadPhotosAndSave(uid, userName, date, "", selectedRating, text);
+                Response<ReviewDto> upsert = ApiClient.get(requireContext())
+                        .createOrUpdateReview(eventId, new ReviewUpsertBody(selectedRating, text, uploadedUrls))
+                        .execute();
+                if (!upsert.isSuccessful()) {
+                    requireActivity().runOnUiThread(() -> {
+                        publishBtn.setEnabled(true);
+                        Toast.makeText(requireContext(), "Не удалось сохранить отзыв", Toast.LENGTH_SHORT).show();
+                    });
+                    return;
                 }
+
+                requireActivity().runOnUiThread(() -> {
+                    publishBtn.setEnabled(true);
+                    Toast.makeText(requireContext(), "Отзыв опубликован", Toast.LENGTH_SHORT).show();
+                    if (listener != null) {
+                        listener.onReviewPublished();
+                    }
+                    dismiss();
+                });
+            } catch (Exception e) {
+                requireActivity().runOnUiThread(() -> {
+                    publishBtn.setEnabled(true);
+                    Toast.makeText(requireContext(), "Ошибка: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
             }
         });
     }
 
-    private void uploadPhotosAndSave(String uid, String userName, String date, String avatarUrl, int rating, String text) {
-        String basePath = "ReviewPhotos/" + category + "/" + eventName + "/" + uid + "/" + System.currentTimeMillis();
-        StorageReference storageRef = FirebaseStorage.getInstance().getReference();
-        final String[] photoUrls = new String[photoUris.size()];
-        final int[] uploaded = { 0 };
-        final int total = photoUris.size();
-
-        for (int i = 0; i < photoUris.size(); i++) {
-            final int index = i;
-            Uri uri = photoUris.get(i);
-            StorageReference ref = storageRef.child(basePath + "_" + i + ".jpg");
-            ref.putFile(uri).addOnSuccessListener(taskSnapshot -> ref.getDownloadUrl().addOnSuccessListener(downloadUri -> {
-                photoUrls[index] = downloadUri.toString();
-                uploaded[0]++;
-                if (uploaded[0] == total) {
-                    List<String> list = new ArrayList<>();
-                    for (String u : photoUrls) if (u != null) list.add(u);
-                    saveReviewToFirebase(uid, userName, date, avatarUrl, rating, text, list);
-                }
-            }).addOnFailureListener(e -> {
-                uploaded[0]++;
-                if (uploaded[0] == total) {
-                    List<String> list = new ArrayList<>();
-                    for (String u : photoUrls) if (u != null) list.add(u);
-                    saveReviewToFirebase(uid, userName, date, avatarUrl, rating, text, list);
-                }
-            })).addOnFailureListener(e -> {
-                uploaded[0]++;
-                if (uploaded[0] == total) {
-                    List<String> list = new ArrayList<>();
-                    for (String u : photoUrls) if (u != null) list.add(u);
-                    saveReviewToFirebase(uid, userName, date, avatarUrl, rating, text, list);
-                }
-            });
+    @Nullable
+    private byte[] readUriBytes(Uri uri) {
+        try (InputStream in = requireContext().getContentResolver().openInputStream(uri)) {
+            if (in == null) return null;
+            return readAllBytes(in);
+        } catch (IOException ignored) {
+            return null;
         }
     }
 
-    private void saveReviewToFirebase(String uid, String userName, String date, String avatarUrl, int rating, String text, List<String> photoUrls) {
-        DatabaseReference ref = FirebaseDatabase.getInstance()
-                .getReference("Reviews")
-                .child(category)
-                .child(eventName)
-                .child(uid);
-
-        Map<String, Object> review = new HashMap<>();
-        review.put("rating", rating);
-        review.put("text", text);
-        review.put("userName", userName);
-        review.put("date", date);
-        review.put("avatarUrl", avatarUrl);
-        review.put("photoUrls", photoUrls);
-
-        ref.setValue(review).addOnCompleteListener(task -> {
-            publishBtn.setEnabled(true);
-            if (task.isSuccessful()) {
-                Toast.makeText(requireContext(), "Отзыв опубликован", Toast.LENGTH_SHORT).show();
-                if (listener != null) listener.onReviewPublished();
-                dismiss();
-            } else {
-                Toast.makeText(requireContext(), "Ошибка публикации", Toast.LENGTH_SHORT).show();
-            }
-        });
+    private static byte[] readAllBytes(InputStream in) throws IOException {
+        ByteArrayOutputStream buf = new ByteArrayOutputStream();
+        byte[] b = new byte[4096];
+        int n;
+        while ((n = in.read(b)) != -1) {
+            buf.write(b, 0, n);
+        }
+        return buf.toByteArray();
     }
 }

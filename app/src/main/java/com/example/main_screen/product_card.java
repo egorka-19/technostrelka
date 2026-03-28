@@ -29,20 +29,24 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.bumptech.glide.Glide;
 import com.example.main_screen.adapter.EventReviewsAdapter;
 import com.example.main_screen.adapter.ProductImagePagerAdapter;
+import com.example.main_screen.api.ApiClient;
+import com.example.main_screen.api.dto.EventItemDto;
+import com.example.main_screen.api.dto.RatingDto;
+import com.example.main_screen.api.dto.ReviewDto;
 import com.example.main_screen.model.EventReviewModel;
 import com.example.main_screen.model.PlaceModel;
 import com.example.main_screen.model.PopularModel;
+import com.example.main_screen.model.RouteModel;
 import com.example.main_screen.model.ViewAllModel;
 import com.example.main_screen.utils.BlurUtils;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import retrofit2.Response;
 
 public class product_card extends AppCompatActivity {
     ViewPager2 photoPager;
@@ -60,6 +64,7 @@ public class product_card extends AppCompatActivity {
     ViewAllModel viewAllModel = null;
     PopularModel popularModel = null;
     PlaceModel placeModel = null;
+    RouteModel routeModel = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,6 +107,8 @@ public class product_card extends AppCompatActivity {
                 url = viewAllModel.getUrl();
             } else if (popularModel != null) {
                 url = popularModel.getUrl();
+            } else if (routeModel != null) {
+                url = routeModel.getUrl();
             }
             
             if (!url.isEmpty()) {
@@ -118,10 +125,12 @@ public class product_card extends AppCompatActivity {
             popularModel = (PopularModel) object;
         } else if (object instanceof PlaceModel) {
             placeModel = (PlaceModel) object;
+        } else if (object instanceof RouteModel) {
+            routeModel = (RouteModel) object;
         }
 
-        setupPhotos(); // TODO: заменить список фото на Firebase
-        setupReviews(); // TODO: заменить заглушки на Firebase
+        setupPhotos();
+        setupReviews();
 
         // Load data into views
         if (viewAllModel != null) {
@@ -130,11 +139,13 @@ public class product_card extends AppCompatActivity {
             loadPopularModelData();
         } else if (placeModel != null) {
             loadPlaceModelData();
+        } else if (routeModel != null) {
+            loadRouteModelData();
         }
 
-        loadRatingFromFirebase(); // рейтинг как на карточках (по отзывам)
-        loadReviewsFromFirebase(); // отзывы (если есть структура)
-        loadReviewPhotosFromFirebase(); // фото из отзывов в pro_card_img
+        loadRatingFromApi();
+        loadReviewsFromApi();
+        loadGalleryFromApi();
 
         // Обновляем blur после первой отрисовки
         photoPager.post(this::updateOverlayBlurStrong);
@@ -150,13 +161,15 @@ public class product_card extends AppCompatActivity {
             photoList.add(viewAllModel.getImg_url());
         } else if (popularModel != null && popularModel.getImg_url() != null && !popularModel.getImg_url().isEmpty()) {
             photoList.add(popularModel.getImg_url());
+        } else if (routeModel != null && routeModel.getImageUrl() != null && !routeModel.getImageUrl().isEmpty()) {
+            photoList.add(routeModel.getImageUrl());
         } else if (placeModel != null && placeModel.getImageUrl() != null && !placeModel.getImageUrl().isEmpty()) {
             photoList.add(placeModel.getImageUrl());
         } else {
             photoList.add(R.drawable.izo);
         }
 
-        // Остальные фото подгружаются из отзывов пользователей (loadReviewPhotosFromFirebase)
+        // Полная галерея с backend — loadGalleryFromApi()
 
         ProductImagePagerAdapter adapter = new ProductImagePagerAdapter(this, photoList);
         photoPager.setAdapter(adapter);
@@ -272,51 +285,36 @@ public class product_card extends AppCompatActivity {
         reviewsRecycler.setAdapter(reviewsAdapter);
     }
 
-    private void loadRatingFromFirebase() {
-        String eventName = getEventName();
-        String category = getCategoryTypeForFirebase(getEventType());
-        if (eventName == null || eventName.isEmpty()) {
-            ratingValue.setText("0");
-            updateReviewsEmptyState(0);
+    private void loadRatingFromApi() {
+        String id = getServerEventId();
+        if (id == null || id.isEmpty()) {
+            applyLocalRatingOnly();
             return;
         }
-
-        DatabaseReference ref = FirebaseDatabase.getInstance()
-                .getReference("Reviews")
-                .child(category)
-                .child(eventName);
-
-        ref.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot snapshot) {
-                double total = 0;
-                int count = 0;
-                for (DataSnapshot userSnap : snapshot.getChildren()) {
-                    Object ratingObj = userSnap.child("rating").getValue();
-                    if (ratingObj != null) {
-                        try {
-                            double r = Double.parseDouble(String.valueOf(ratingObj));
-                            total += r;
-                            count++;
-                        } catch (Exception ignored) {
-                        }
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                Response<RatingDto> resp = ApiClient.get(product_card.this).getEventRatingSummary(id).execute();
+                runOnUiThread(() -> {
+                    if (resp.isSuccessful() && resp.body() != null) {
+                        ratingValue.setText(String.format(Locale.US, "%.1f", resp.body().average));
+                    } else {
+                        applyLocalRatingOnly();
                     }
-                }
-                if (count > 0) {
-                    double avg = total / count;
-                    ratingValue.setText(String.format(java.util.Locale.US, "%.1f", avg));
-                } else {
-                    ratingValue.setText("0");
-                }
-                updateReviewsEmptyState(count);
-            }
-
-            @Override
-            public void onCancelled(DatabaseError error) {
-                ratingValue.setText("0");
-                updateReviewsEmptyState(0);
+                });
+            } catch (Exception e) {
+                runOnUiThread(this::applyLocalRatingOnly);
             }
         });
+    }
+
+    private void applyLocalRatingOnly() {
+        String r = "0";
+        if (popularModel != null) {
+            r = popularModel.getRating();
+        } else if (viewAllModel != null) {
+            r = viewAllModel.getRating();
+        }
+        ratingValue.setText(r != null ? r : "0");
     }
 
     private void updateReviewsEmptyState(int reviewCount) {
@@ -326,44 +324,40 @@ public class product_card extends AppCompatActivity {
         }
     }
 
-    /**
-     * Подгружает фото из отзывов пользователей и добавляет их в ViewPager2 (pro_card_img).
-     */
-    private void loadReviewPhotosFromFirebase() {
-        String eventName = getEventName();
-        String category = getCategoryTypeForFirebase(getEventType());
-        if (eventName == null || eventName.isEmpty() || photoList == null) return;
-
-        DatabaseReference ref = FirebaseDatabase.getInstance()
-                .getReference("Reviews")
-                .child(category)
-                .child(eventName);
-
-        ref.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot snapshot) {
-                List<String> reviewPhotoUrls = new ArrayList<>();
-                for (DataSnapshot userSnap : snapshot.getChildren()) {
-                    DataSnapshot photoUrlsSnap = userSnap.child("photoUrls");
-                    if (!photoUrlsSnap.exists()) continue;
-                    for (DataSnapshot urlSnap : photoUrlsSnap.getChildren()) {
-                        Object val = urlSnap.getValue();
-                        if (val != null) {
-                            String url = String.valueOf(val);
-                            if (!url.isEmpty() && !"null".equals(url)) {
-                                reviewPhotoUrls.add(url);
+    private void loadGalleryFromApi() {
+        String id = getServerEventId();
+        if (id == null || id.isEmpty() || photoList == null) {
+            return;
+        }
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                Response<EventItemDto> resp = ApiClient.get(product_card.this).getEvent(id).execute();
+                runOnUiThread(() -> {
+                    if (!resp.isSuccessful() || resp.body() == null) {
+                        return;
+                    }
+                    EventItemDto ev = resp.body();
+                    photoList.clear();
+                    if (ev.imageUrls != null) {
+                        for (String u : ev.imageUrls) {
+                            if (u != null && !u.isEmpty()) {
+                                photoList.add(resolveMediaUrl(u));
                             }
                         }
                     }
-                }
-
-                runOnUiThread(() -> {
-                    if (photoList == null) return;
-                    // Первый элемент — основное фото места, остальное заменяем на фото из отзывов
-                    Object mainPhoto = photoList.isEmpty() ? null : photoList.get(0);
-                    photoList.clear();
-                    if (mainPhoto != null) photoList.add(mainPhoto);
-                    photoList.addAll(reviewPhotoUrls);
+                    if (photoList.isEmpty()) {
+                        if (viewAllModel != null && viewAllModel.getImg_url() != null && !viewAllModel.getImg_url().isEmpty()) {
+                            photoList.add(resolveMediaUrl(viewAllModel.getImg_url()));
+                        } else if (popularModel != null && popularModel.getImg_url() != null && !popularModel.getImg_url().isEmpty()) {
+                            photoList.add(resolveMediaUrl(popularModel.getImg_url()));
+                        } else if (routeModel != null && routeModel.getImageUrl() != null && !routeModel.getImageUrl().isEmpty()) {
+                            photoList.add(resolveMediaUrl(routeModel.getImageUrl()));
+                        } else if (placeModel != null && placeModel.getImageUrl() != null && !placeModel.getImageUrl().isEmpty()) {
+                            photoList.add(resolveMediaUrl(placeModel.getImageUrl()));
+                        } else {
+                            photoList.add(R.drawable.izo);
+                        }
+                    }
                     RecyclerView.Adapter<?> adapter = photoPager.getAdapter();
                     if (adapter != null) {
                         adapter.notifyDataSetChanged();
@@ -371,103 +365,100 @@ public class product_card extends AppCompatActivity {
                     setupIndicators(photoList.size());
                     photoPager.post(product_card.this::updateOverlayBlurStrong);
                 });
-            }
-
-            @Override
-            public void onCancelled(DatabaseError error) {
-                // оставляем текущий список фото
+            } catch (Exception ignored) {
             }
         });
     }
 
-    private void loadReviewsFromFirebase() {
-        // Пытаемся подгрузить отзывы, если такая структура уже есть в Firebase.
-        // TODO: согласовать финальную структуру отзывов в Firebase (avatarUrl/userName/date/text/rating)
-        String eventName = getEventName();
-        String category = getCategoryTypeForFirebase(getEventType());
-        if (eventName == null || eventName.isEmpty()) return;
-
-        DatabaseReference ref = FirebaseDatabase.getInstance()
-                .getReference("Reviews")
-                .child(category)
-                .child(eventName);
-
-        ref.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot snapshot) {
-                List<EventReviewModel> list = new ArrayList<>();
-                for (DataSnapshot userSnap : snapshot.getChildren()) {
-                    String userName = String.valueOf(userSnap.child("userName").getValue());
-                    String avatarUrl = String.valueOf(userSnap.child("avatarUrl").getValue());
-                    String date = String.valueOf(userSnap.child("date").getValue());
-                    String text = String.valueOf(userSnap.child("text").getValue());
-
-                    float rating = 5.0f;
-                    Object ratingObj = userSnap.child("rating").getValue();
-                    if (ratingObj != null) {
-                        try {
-                            rating = Float.parseFloat(String.valueOf(ratingObj));
-                        } catch (Exception ignored) {}
+    private void loadReviewsFromApi() {
+        String id = getServerEventId();
+        if (id == null || id.isEmpty()) {
+            updateReviewsEmptyState(0);
+            return;
+        }
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                Response<List<ReviewDto>> resp = ApiClient.get(product_card.this).listReviews(id).execute();
+                runOnUiThread(() -> {
+                    List<EventReviewModel> list = new ArrayList<>();
+                    if (resp.isSuccessful() && resp.body() != null) {
+                        for (ReviewDto rd : resp.body()) {
+                            if (rd.text == null || rd.text.isEmpty()) {
+                                continue;
+                            }
+                            String userName = rd.userName != null ? rd.userName : "Пользователь";
+                            String avatarUrl = resolveMediaUrl(rd.avatarUrl != null ? rd.avatarUrl : "");
+                            String date = rd.reviewDate != null ? rd.reviewDate : "";
+                            list.add(new EventReviewModel(userName, avatarUrl, date, (float) rd.rating, rd.text));
+                        }
                     }
-
-                    // Если ключи отсутствуют — пропускаем (чтобы не показывать "null")
-                    if (userName == null || "null".equals(userName) || text == null || "null".equals(text)) {
-                        continue;
+                    if (reviewsAdapter != null) {
+                        reviewsAdapter.setItems(list);
                     }
-                    if (date == null || "null".equals(date)) date = "";
-                    if (avatarUrl != null && "null".equals(avatarUrl)) avatarUrl = "";
-
-                    list.add(new EventReviewModel(userName, avatarUrl, date, rating, text));
-                }
-
-                if (reviewsAdapter != null) {
-                    reviewsAdapter.setItems(list);
-                }
-                updateReviewsEmptyState(list.size());
-            }
-
-            @Override
-            public void onCancelled(DatabaseError error) {
-                // оставляем заглушки
+                    updateReviewsEmptyState(list.size());
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> updateReviewsEmptyState(0));
             }
         });
+    }
+
+    private String getServerEventId() {
+        if (viewAllModel != null) {
+            String s = viewAllModel.getServerId();
+            if (s != null && !s.isEmpty()) {
+                return s;
+            }
+        }
+        if (popularModel != null) {
+            String s = popularModel.getServerId();
+            if (s != null && !s.isEmpty()) {
+                return s;
+            }
+        }
+        if (routeModel != null) {
+            String s = routeModel.getId();
+            if (s != null && !s.isEmpty()) {
+                return s;
+            }
+        }
+        if (placeModel != null) {
+            String s = placeModel.getServerId();
+            if (s != null && !s.isEmpty()) {
+                return s;
+            }
+        }
+        return null;
+    }
+
+    private static String resolveMediaUrl(String url) {
+        if (url == null || url.isEmpty()) {
+            return "";
+        }
+        if (url.startsWith("http://") || url.startsWith("https://")) {
+            return url;
+        }
+        String base = com.example.main_screen.BuildConfig.API_BASE_URL;
+        if (base.endsWith("/api/v1/")) {
+            base = base.substring(0, base.length() - "/api/v1/".length());
+        } else if (base.endsWith("/api/v1")) {
+            base = base.substring(0, base.length() - "/api/v1".length());
+        }
+        if (!base.endsWith("/")) {
+            base += "/";
+        }
+        if (url.startsWith("/")) {
+            return base.substring(0, base.length() - 1) + url;
+        }
+        return base + url;
     }
 
     private String getEventName() {
         if (viewAllModel != null) return viewAllModel.getName();
         if (popularModel != null) return popularModel.getName();
+        if (routeModel != null) return routeModel.getName();
         if (placeModel != null) return placeModel.getName();
         return null;
-    }
-
-    private String getEventType() {
-        if (viewAllModel != null) return viewAllModel.getType();
-        if (popularModel != null) return popularModel.getType();
-        if (placeModel != null) return placeModel.getType();
-        return null;
-    }
-
-    private String getCategoryTypeForFirebase(String type) {
-        if (type == null) return "Other";
-        switch (type) {
-            case "Кино":
-            case "Cinema":
-                return "Cinema";
-            case "Театр":
-            case "Theater":
-                return "Theater";
-            case "Парк":
-            case "Park":
-                return "Park";
-            case "Ресторан":
-            case "Restaurant":
-                return "Restaraunt";
-            case "Музей":
-            case "Museum":
-                return "Museum";
-            default:
-                return "Other";
-        }
     }
 
     private void loadViewAllModelData() {
@@ -499,6 +490,18 @@ public class product_card extends AppCompatActivity {
         place.setText(nonEmpty(placeModel.getPlace(), "Ижевск, ул. Милиционная, 5"));
     }
 
+    private void loadRouteModelData() {
+        name.setText(routeModel.getName());
+        description.setText(nonEmpty(routeModel.getDescription(), ""));
+        age.setText(nonEmpty(routeModel.getDifficulty(), "Нет ограничений по возрасту"));
+        String sched = routeModel.getDuration();
+        if (sched == null || sched.isEmpty()) {
+            sched = routeModel.getDaysRange();
+        }
+        date.setText(nonEmpty(sched, ""));
+        place.setText(nonEmpty(routeModel.getPlace(), "Адрес не указан"));
+    }
+
     private String nonEmpty(String value, String fallback) {
         if (value == null) return fallback;
         String v = value.trim();
@@ -506,17 +509,17 @@ public class product_card extends AppCompatActivity {
     }
 
     private void openAddReviewSheet() {
-        String eventName = getEventName();
-        String category = getCategoryTypeForFirebase(getEventType());
-        if (eventName == null || eventName.isEmpty()) {
-            Toast.makeText(this, "Не удалось определить место", Toast.LENGTH_SHORT).show();
+        String id = getServerEventId();
+        if (id == null || id.isEmpty()) {
+            Toast.makeText(this, "Нет привязки к событию на сервере", Toast.LENGTH_SHORT).show();
             return;
         }
-        AddReviewBottomSheetFragment sheet = AddReviewBottomSheetFragment.newInstance(eventName, category);
+        String display = getEventName() != null ? getEventName() : "";
+        AddReviewBottomSheetFragment sheet = AddReviewBottomSheetFragment.newInstance(id, display);
         sheet.setOnReviewPublishedListener(() -> {
-            loadRatingFromFirebase();
-            loadReviewsFromFirebase();
-            loadReviewPhotosFromFirebase();
+            loadRatingFromApi();
+            loadReviewsFromApi();
+            loadGalleryFromApi();
         });
         FragmentManager fm = getSupportFragmentManager();
         sheet.show(fm, "AddReviewBottomSheet");

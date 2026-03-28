@@ -1,49 +1,41 @@
 package com.example.main_screen.utils;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
+import android.content.Context;
+import android.content.SharedPreferences;
 
 public class ProgressManager {
+    private static final String PREFS = "technostrelka_progress";
+    private static final String KEY_PROGRESS = "progress_value";
     private static final int MAX_PROGRESS = 100;
     private static final int ARTICLE_POINTS = 5;
     private static final int VIDEO_POINTS = 10;
 
-    public static void updateProgress(String contentId, String contentType) {
-        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (currentUser == null) return;
-
-        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference()
-                .child("Users")
-                .child(currentUser.getUid());
-
-        // Получаем текущий прогресс
-        userRef.child("progress").get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                int currentProgress = 0;
-                if (task.getResult().getValue() != null) {
-                    currentProgress = task.getResult().getValue(Integer.class);
-                }
-
-                // Вычисляем новые очки
-                int newPoints = contentType.equals("article") ? ARTICLE_POINTS : VIDEO_POINTS;
-                int newProgress = Math.min(currentProgress + newPoints, MAX_PROGRESS);
-
-                // Обновляем прогресс
-                userRef.child("progress").setValue(newProgress);
-            }
-        });
+    public static void updateProgress(Context context, String contentId, String contentType) {
+        if (context == null) {
+            return;
+        }
+        SharedPreferences sp = context.getApplicationContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        int currentProgress = sp.getInt(KEY_PROGRESS, 0);
+        int newPoints = "article".equals(contentType) ? ARTICLE_POINTS : VIDEO_POINTS;
+        int newProgress = Math.min(currentProgress + newPoints, MAX_PROGRESS);
+        sp.edit().putInt(KEY_PROGRESS, newProgress).apply();
     }
 
-    public static void resetProgress() {
-        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (currentUser == null) return;
-
-        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference()
-                .child("Users")
-                .child(currentUser.getUid());
-
-        userRef.child("progress").setValue(0);
+    public static void resetProgress(Context context) {
+        if (context == null) {
+            return;
+        }
+        context.getApplicationContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .edit()
+                .putInt(KEY_PROGRESS, 0)
+                .apply();
     }
-} 
+
+    public static int getProgress(Context context) {
+        if (context == null) {
+            return 0;
+        }
+        return context.getApplicationContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .getInt(KEY_PROGRESS, 0);
+    }
+}

@@ -1,3 +1,4 @@
+
 package com.example.main_screen.bottomnav.profile;
 
 import android.app.Activity;
@@ -21,22 +22,24 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
-import com.example.main_screen.ChatActivity;
+import com.example.main_screen.BuildConfig;
 import com.example.main_screen.ProfileChatActivity;
 import com.example.main_screen.Settings_Activity;
+import com.example.main_screen.api.ApiClient;
+import com.example.main_screen.api.TokenStore;
+import com.example.main_screen.api.dto.UserMeDto;
 import com.example.main_screen.databinding.FragmentProfileBinding;
-import com.example.main_screen.favourite;
 import com.example.main_screen.service.ScoreService;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.UploadTask;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.concurrent.Executors;
+
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
+import retrofit2.Response;
 
 public class ProfileFragment extends Fragment {
     private FragmentProfileBinding binding;
@@ -56,19 +59,16 @@ public class ProfileFragment extends Fragment {
             Toast.makeText(getContext(), "Дождитесь загрузки фото, не выходите из приложения!", Toast.LENGTH_SHORT).show();
         });
 
-        binding.logoutLayout.setOnClickListener(v -> {
-            startActivity(new Intent(ProfileFragment.this.getActivity(), Settings_Activity.class));
-        });
+        binding.logoutLayout.setOnClickListener(v ->
+                startActivity(new Intent(ProfileFragment.this.getActivity(), Settings_Activity.class)));
 
         binding.supportLayout.setOnClickListener(v -> {
             Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/flachka"));
             startActivity(browserIntent);
         });
 
-        // Add click listener for chat item
-        binding.chatLayout.setOnClickListener(v -> {
-            startActivity(new Intent(getActivity(), ProfileChatActivity.class));
-        });
+        binding.chatLayout.setOnClickListener(v ->
+                startActivity(new Intent(getActivity(), ProfileChatActivity.class)));
 
         return binding.getRoot();
     }
@@ -78,17 +78,17 @@ public class ProfileFragment extends Fragment {
             new ActivityResultCallback<ActivityResult>() {
                 @Override
                 public void onActivityResult(ActivityResult result) {
-                    if (result.getResultCode()==Activity.RESULT_OK && result.getData()!=null && result.getData().getData()!=null){
+                    if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null && result.getData().getData() != null) {
                         filePath = result.getData().getData();
 
-                        try{
+                        try {
                             Bitmap bitmap = MediaStore.Images.Media
                                     .getBitmap(
                                             requireContext().getContentResolver(),
                                             filePath
                                     );
                             binding.profileImage.setImageBitmap(bitmap);
-                        }catch(IOException e){
+                        } catch (IOException e) {
                             e.printStackTrace();
                         }
 
@@ -98,76 +98,123 @@ public class ProfileFragment extends Fragment {
             }
     );
 
-    private void loadUserInfo(){
-        FirebaseDatabase.getInstance().getReference().child("Users").child(FirebaseAuth.getInstance().getCurrentUser().getUid())
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        String username = snapshot.child("username").getValue().toString();
-                        String profileImage = snapshot.child("profileImage").getValue().toString();
-                        String email = snapshot.child("email").getValue().toString();
-                        
-                        binding.profileName.setText(username);
-                        binding.profileEmail.setText(email);
-
-                        if (!profileImage.isEmpty()){
-                            Glide.with(getContext())
-                                .load(profileImage)
-                                .circleCrop()
-                                .into(binding.profileImage);
-                        }
-
-                        // Обновление прогресс бара на основе очков из ScoreService
-                        int score = ScoreService.getInstance().getScore();
-                        int progress = Math.min(score, 100);
-                        progressBar.setProgress(progress);
-                        binding.progressText.setText(progress + "%");
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-                        Toast.makeText(getContext(), "Ошибка загрузки данных", Toast.LENGTH_SHORT).show();
-                    }
-                });
+    private static String resolveMediaUrl(String url) {
+        if (url == null || url.isEmpty()) return "";
+        if (url.startsWith("http://") || url.startsWith("https://")) return url;
+        String base = BuildConfig.API_BASE_URL;
+        if (base.endsWith("/api/v1/")) {
+            base = base.substring(0, base.length() - "/api/v1/".length());
+        } else if (base.endsWith("/api/v1")) {
+            base = base.substring(0, base.length() - "/api/v1".length());
+        }
+        if (!base.endsWith("/")) base += "/";
+        if (url.startsWith("/")) {
+            return base.substring(0, base.length() - 1) + url;
+        }
+        return base + url;
     }
 
-    private void selectImage(){
+    private void loadUserInfo() {
+        if (!TokenStore.get(requireContext()).hasAccessToken()) {
+            return;
+        }
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                Response<UserMeDto> resp = ApiClient.get(requireContext()).getMe().execute();
+                if (!isAdded() || binding == null) return;
+                requireActivity().runOnUiThread(() -> {
+                    if (!resp.isSuccessful() || resp.body() == null) {
+                        Toast.makeText(getContext(), "Не удалось загрузить профиль", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    UserMeDto u = resp.body();
+                    String name = u.username != null && !u.username.isEmpty() ? u.username : (u.email != null ? u.email : "");
+                    binding.profileName.setText(name);
+                    binding.profileEmail.setText(u.email != null ? u.email : "");
+
+                    if (u.profileImageUrl != null && !u.profileImageUrl.isEmpty()) {
+                        Glide.with(requireContext())
+                                .load(resolveMediaUrl(u.profileImageUrl))
+                                .circleCrop()
+                                .into(binding.profileImage);
+                    }
+
+                    int score = ScoreService.getInstance().getScore();
+                    int progress = Math.min(score, 100);
+                    progressBar.setProgress(progress);
+                    binding.progressText.setText(progress + "%");
+                });
+            } catch (Exception e) {
+                if (isAdded() && getContext() != null) {
+                    requireActivity().runOnUiThread(() ->
+                            Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show());
+                }
+            }
+        });
+    }
+
+    private void selectImage() {
         Intent intent = new Intent();
         intent.setType("image/*");
         intent.setAction(Intent.ACTION_GET_CONTENT);
         pickImageActivityResultLauncher.launch(intent);
     }
 
-    private void uploadImage(){
-        if (filePath!=null){
-            String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+    private void uploadImage() {
+        if (filePath == null || !TokenStore.get(requireContext()).hasAccessToken()) {
+            return;
+        }
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                byte[] bytes = readUriBytes(filePath);
+                if (bytes == null || bytes.length == 0) {
+                    requireActivity().runOnUiThread(() ->
+                            Toast.makeText(getContext(), "Не удалось прочитать файл", Toast.LENGTH_SHORT).show());
+                    return;
+                }
+                RequestBody body = RequestBody.create(MediaType.parse("image/jpeg"), bytes);
+                MultipartBody.Part part = MultipartBody.Part.createFormData("file", "avatar.jpg", body);
+                Response<UserMeDto> resp = ApiClient.get(requireContext()).uploadAvatar(part).execute();
+                requireActivity().runOnUiThread(() -> {
+                    if (!isAdded()) return;
+                    if (resp.isSuccessful()) {
+                        Toast.makeText(getContext(), "Фото успешно загружено", Toast.LENGTH_SHORT).show();
+                        loadUserInfo();
+                    } else {
+                        Toast.makeText(getContext(), "Ошибка загрузки фото", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } catch (Exception e) {
+                if (isAdded()) {
+                    requireActivity().runOnUiThread(() ->
+                            Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_LONG).show());
+                }
+            }
+        });
+    }
 
-            FirebaseStorage.getInstance().getReference().child("images/"+uid)
-                    .putFile(filePath).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                        @Override
-                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                            Toast.makeText(getContext(), "Фото успешно загружено", Toast.LENGTH_SHORT).show();
-
-                            FirebaseStorage.getInstance().getReference().child("images/"+uid).getDownloadUrl()
-                                    .addOnSuccessListener(new OnSuccessListener<Uri>() {
-                                        @Override
-                                        public void onSuccess(Uri uri) {
-                                            FirebaseDatabase.getInstance().getReference().child("Users").child(FirebaseAuth.getInstance().getCurrentUser().getUid())
-                                                    .child("profileImage").setValue(uri.toString());
-                                        }
-                                    });
-                        }
-                    });
+    private byte[] readUriBytes(Uri uri) {
+        try (InputStream in = requireContext().getContentResolver().openInputStream(uri)) {
+            if (in == null) return null;
+            ByteArrayOutputStream buf = new ByteArrayOutputStream();
+            byte[] b = new byte[4096];
+            int n;
+            while ((n = in.read(b)) != -1) {
+                buf.write(b, 0, n);
+            }
+            return buf.toByteArray();
+        } catch (IOException e) {
+            return null;
         }
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        // Обновляем прогресс бар при возвращении на экран профиля
         int score = ScoreService.getInstance().getScore();
         int progress = Math.min(score, 100);
         progressBar.setProgress(progress);
         binding.progressText.setText(progress + "%");
+        loadUserInfo();
     }
 }

@@ -1,104 +1,76 @@
 package com.example.main_screen;
+
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.main_screen.bottomnav.profile.ProfileFragment;
+import com.example.main_screen.api.ApiClient;
+import com.example.main_screen.api.TokenStore;
+import com.example.main_screen.api.dto.RegisterBody;
+import com.example.main_screen.api.dto.TokenResponseDto;
 import com.example.main_screen.databinding.ActivityRegisterBinding;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthResult;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
-import java.util.HashMap;
-
-import com.example.main_screen.MainActivity;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class RegisterActivity extends AppCompatActivity {
-    public FirebaseDatabase database;
     private ProgressDialog loadingBar;
-    public DatabaseReference reference;
-
-
     private ActivityRegisterBinding binding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         loadingBar = new ProgressDialog(this);
-        database = FirebaseDatabase.getInstance();
-        reference = database.getReference();
         binding = ActivityRegisterBinding.inflate(getLayoutInflater());
-        binding.minibackBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
-            }
-        });
-
         setContentView(binding.getRoot());
+
+        binding.minibackBtn.setOnClickListener(v -> startActivity(new Intent(RegisterActivity.this, LoginActivity.class)));
 
         binding.btnSign.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (binding.emailEt.getText().toString().isEmpty() || binding.loginEt.getText().toString().isEmpty()
-                        || binding.passwordEt.getText().toString().isEmpty()){
+                if (binding.emailEt.getText().toString().isEmpty()
+                        || binding.loginEt.getText().toString().isEmpty()
+                        || binding.passwordEt.getText().toString().isEmpty()) {
                     Toast.makeText(getApplicationContext(), "Fields cannot be empty", Toast.LENGTH_SHORT).show();
-                }else{
-                    loadingBar.setTitle("Вход в приложение");
-                    loadingBar.setMessage("Пожалуйста, подождите...");
-                    loadingBar.setCanceledOnTouchOutside(false);
-                    loadingBar.show();
-                    FirebaseAuth.getInstance().createUserWithEmailAndPassword(binding.emailEt.getText().toString(), binding.passwordEt.getText().toString())
-                            .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                                @Override
-                                public void onComplete(@NonNull Task<AuthResult> task) {
-                                    if (task.isSuccessful()){
-                                        loadingBar.dismiss();
-                                        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-                                        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("Users").child(currentUser.getUid());
-                                        userRef.child("username").setValue(binding.loginEt.getText().toString());
-                                        userRef.child("profileImage").setValue("");
-                                        userRef.child("email").setValue(binding.emailEt.getText().toString());
-                                        userRef.child("password").setValue(binding.passwordEt.getText().toString());
-                                        userRef.child("category_user").setValue("");
-                                        userRef.child("postText").setValue("");
-                                        userRef.child("postNameText").setValue("");
-                                        userRef.child("postImages").setValue("");
-                                        DatabaseReference userReviews = FirebaseDatabase.getInstance().getReference().child("Reviews");
-                                        userReviews.child("Cinema").child("Master_and_Margarita").child(currentUser.getUid()).child("lovest").setValue(0);
-                                        userReviews.child("Cinema").child("Led_3").child(currentUser.getUid()).child("lovest").setValue(0);
-                                        userReviews.child("Cinema").child("Onegin").child(currentUser.getUid()).child("lovest") .setValue(0);
-                                        userReviews.child("Theater").child("Rus_dram").child(currentUser.getUid()).child("lovest").setValue(0);
-                                        userReviews.child("Theater").child("Axion").child(currentUser.getUid()).child("lovest").setValue(0);
-                                        userReviews.child("Theater").child("Udm_national").child(currentUser.getUid()).child("lovest") .setValue(0);
-                                        userReviews.child("Park").child("Gorkogo").child(currentUser.getUid()).child("lovest").setValue(0);
-                                        userReviews.child("Park").child("Kosmonavtov").child(currentUser.getUid()).child("lovest").setValue(0);
-                                        userReviews.child("Park").child("Kirova").child(currentUser.getUid()).child("lovest") .setValue(0);
-                                        userReviews.child("Restaraunt").child("Panorama").child(currentUser.getUid()).child("lovest").setValue(0);
-                                        userReviews.child("Restaraunt").child("Penthouse").child(currentUser.getUid()).child("lovest").setValue(0);
-                                        userReviews.child("Restaraunt").child("Kare").child(currentUser.getUid()).child("lovest").setValue(0);
-                                        userReviews.child("Museum").child("Izhmash").child(currentUser.getUid()).child("lovest").setValue(0);
-                                        userReviews.child("Museum").child("Pochta_UR").child(currentUser.getUid()).child("lovest").setValue(0);
-                                        userReviews.child("Museum").child("Motomuseum").child(currentUser.getUid()).child("lovest").setValue(0);
-                                        startActivity(new Intent(RegisterActivity.this, MainActivity.class));
-                                    }else{
-                                        loadingBar.dismiss();
-                                        Toast.makeText(RegisterActivity.this, "You have some errors", Toast.LENGTH_SHORT).show();
-                                    }
-                                }
-                            });
-
+                    return;
                 }
+                loadingBar.setTitle("Регистрация");
+                loadingBar.setMessage("Пожалуйста, подождите...");
+                loadingBar.setCanceledOnTouchOutside(false);
+                loadingBar.show();
+
+                RegisterBody body = new RegisterBody(
+                        binding.emailEt.getText().toString().trim(),
+                        binding.passwordEt.getText().toString(),
+                        binding.loginEt.getText().toString().trim()
+                );
+                ApiClient.get(RegisterActivity.this).register(body).enqueue(new Callback<TokenResponseDto>() {
+                    @Override
+                    public void onResponse(@NonNull Call<TokenResponseDto> call, @NonNull Response<TokenResponseDto> response) {
+                        loadingBar.dismiss();
+                        if (response.isSuccessful() && response.body() != null) {
+                            TokenResponseDto t = response.body();
+                            TokenStore.get(RegisterActivity.this).saveTokens(t.accessToken, t.refreshToken);
+                            startActivity(new Intent(RegisterActivity.this, MainActivity.class));
+                            finish();
+                        } else {
+                            Toast.makeText(RegisterActivity.this, "Ошибка регистрации (email занят?)", Toast.LENGTH_LONG).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull Call<TokenResponseDto> call, @NonNull Throwable t) {
+                        loadingBar.dismiss();
+                        Toast.makeText(RegisterActivity.this, "Ошибка сети: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                    }
+                });
             }
         });
     }

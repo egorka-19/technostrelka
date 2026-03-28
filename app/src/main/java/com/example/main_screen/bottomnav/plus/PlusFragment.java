@@ -24,6 +24,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.main_screen.R;
 import com.example.main_screen.RoutesFilterActivity;
 import com.example.main_screen.adapter.RouteAdapter;
+import com.example.main_screen.api.ApiClient;
+import com.example.main_screen.api.EventMapper;
+import com.example.main_screen.api.dto.EventItemDto;
 import com.example.main_screen.databinding.FragmentPlusBinding;
 import com.example.main_screen.model.RouteModel;
 
@@ -31,6 +34,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+
+import retrofit2.Response;
 
 public class PlusFragment extends Fragment {
 
@@ -86,8 +92,7 @@ public class PlusFragment extends Fragment {
         initViews();
         setupSearch();
         setupFilterButton();
-        loadTestRoutes(); // TODO: Заменить на загрузку из Firebase
-        setupCategoryRecyclers();
+        loadRoutesFromApi();
     }
 
     private void initViews() {
@@ -192,8 +197,46 @@ public class PlusFragment extends Fragment {
         }
     }
 
-    private void loadTestRoutes() {
-        // TODO: Заменить на загрузку из Firebase
+    private void loadRoutesFromApi() {
+        categoryRoutes.clear();
+        allRoutes.clear();
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                Response<List<EventItemDto>> resp = ApiClient.get(requireContext())
+                        .listEvents(null, 100, 0)
+                        .execute();
+                if (getActivity() == null) {
+                    return;
+                }
+                getActivity().runOnUiThread(() -> {
+                    if (resp.isSuccessful() && resp.body() != null && !resp.body().isEmpty()) {
+                        for (EventItemDto e : resp.body()) {
+                            RouteModel m = EventMapper.eventToRoute(e);
+                            allRoutes.add(m);
+                            String cat = m.getCategory() != null ? m.getCategory() : "Другое";
+                            if (!categoryRoutes.containsKey(cat)) {
+                                categoryRoutes.put(cat, new ArrayList<>());
+                            }
+                            categoryRoutes.get(cat).add(m);
+                        }
+                    } else {
+                        loadTestRoutesFallback();
+                    }
+                    setupCategoryRecyclers();
+                });
+            } catch (Exception e) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        loadTestRoutesFallback();
+                        setupCategoryRecyclers();
+                    });
+                }
+            }
+        });
+    }
+
+    /** Локальные данные, если API недоступен. */
+    private void loadTestRoutesFallback() {
         // Тестовые данные для категории "С детьми"
         List<RouteModel> childrenRoutes = new ArrayList<>();
         childrenRoutes.add(new RouteModel(
@@ -286,6 +329,7 @@ public class PlusFragment extends Fragment {
         categoryRoutes.put("Исторические", historicalRoutes);
         allRoutes.addAll(historicalRoutes);
     }
+
 
     private void setupCategoryRecyclers() {
         // Настройка RecyclerView для категории "С детьми"

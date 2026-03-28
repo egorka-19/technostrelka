@@ -3,6 +3,9 @@ package com.example.main_screen.model;
 import java.io.Serializable;
 
 public class PopularModel implements Serializable {
+    /** UUID события на FastAPI backend */
+    private String serverId;
+    private boolean favorite;
     private String name;
     private String img_url;
     private String description;
@@ -16,6 +19,22 @@ public class PopularModel implements Serializable {
     private String type; // Тип категории (Кино, Театр, Парк, Ресторан, Музей и т.д.)
 
     public PopularModel() {
+    }
+
+    public String getServerId() {
+        return serverId != null ? serverId : "";
+    }
+
+    public void setServerId(String serverId) {
+        this.serverId = serverId;
+    }
+
+    public boolean isFavorite() {
+        return favorite;
+    }
+
+    public void setFavorite(boolean favorite) {
+        this.favorite = favorite;
     }
 
     public PopularModel(String name, String img_url, String description, String age, String data, String place, String url) {

@@ -16,24 +16,20 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.DatabaseReference;
+import com.example.main_screen.adapter.ChatAdapter;
+import com.example.main_screen.api.ApiClient;
+import com.example.main_screen.api.dto.RouteQuizRequestDto;
+import com.example.main_screen.api.dto.RouteQuizResponseDto;
+import com.example.main_screen.model.Message;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import com.example.main_screen.adapter.ChatAdapter;
-import com.example.main_screen.model.Message;
+import retrofit2.Response;
 
 public class ChatActivity extends AppCompatActivity {
 
@@ -47,8 +43,6 @@ public class ChatActivity extends AppCompatActivity {
     private Handler handler;
     private int currentStep = 0;
     private final List<String> userAnswers = new ArrayList<>();
-    private FirebaseAuth mAuth;
-    private DatabaseReference userRef;
 
     private final String[] questions = {
             "1️⃣ Что тебе больше по душе?\nРешать логические задачи\nПридумывать и рисовать\nУзнавать о прошлом",
@@ -71,21 +65,9 @@ public class ChatActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
 
-        // Firebase init
-        mAuth = FirebaseAuth.getInstance();
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser != null) {
-            userRef = FirebaseDatabase.getInstance().getReference().child("Users").child(currentUser.getUid());
-        }
-
         addBotMessage("👋 Привет! Я твой культурный навигатор. Ответь на три коротких вопроса, чтобы я понял, что тебе интересно. Отвечай полноценными ответами.");
         askNextQuestion();
-        btnnext.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(ChatActivity.this, MainActivity.class));
-            }
-        });
+        btnnext.setOnClickListener(v -> startActivity(new Intent(ChatActivity.this, MainActivity.class)));
 
         sendButton.setOnClickListener(v -> {
             String userMessage = editText.getText().toString().trim();
@@ -101,9 +83,8 @@ public class ChatActivity extends AppCompatActivity {
                     currentStep++;
                     messageCont.setVisibility(INVISIBLE);
                 }
-                }
+            }
         });
-
     }
 
     private void askNextQuestion() {
@@ -126,75 +107,33 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void askAIAndRespond(List<String> answers) {
-        String prompt = "На основе следующих ответов определи, к какой области склонен человек: IT, искусство или история. Напиши свой ответ одним словом. Ответы: " + answers;
         ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.execute(() -> {
-            String response = chatGPT(prompt);
-            handler.post(() -> {
-                addBotMessage("Ваше направление: " + response);
-                saveUserCategory(response);
-                btnnext.setVisibility(VISIBLE);
-            });
-        });
-    }
-
-    private void saveUserCategory(String response) {
-        String category = "";
-
-        response = response.toLowerCase();
-        if (response.contains("it")) {
-            category = "IT";
-        } else if (response.contains("искус")) {
-            category = "искусство";
-        } else if (response.contains("истор")) {
-            category = "история";
-        }
-
-        if (!category.isEmpty() && userRef != null) {
-            userRef.child("category_user").setValue(category);
-        }
-    }
-
-    public static String chatGPT(String prompt) {
-        String url = "https://api.naga.ac/v1/chat/completions";
-        String apiKey = "ng-O5o7GnOt9AqR1rjknX08P3m6blgXs";
-        String model = "gpt-3.5-turbo";
-
-        try {
-            URL obj = new URL(url);
-            HttpURLConnection connection = (HttpURLConnection) obj.openConnection();
-            connection.setRequestMethod("POST");
-            connection.setRequestProperty("Authorization", "Bearer " + apiKey);
-            connection.setRequestProperty("Content-Type", "application/json");
-
-            String body = "{\"model\": \"" + model + "\", \"messages\": [{\"role\": \"user\", \"content\": \"" + prompt + "\"}]}";
-
-            connection.setDoOutput(true);
-            OutputStreamWriter writer = new OutputStreamWriter(connection.getOutputStream());
-            writer.write(body);
-            writer.flush();
-            writer.close();
-
-            BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            StringBuilder response = new StringBuilder();
-            String line;
-
-            while ((line = br.readLine()) != null) {
-                response.append(line);
+            try {
+                Map<String, Object> payload = new HashMap<>();
+                int n = Math.min(answers.size(), questions.length);
+                for (int i = 0; i < n; i++) {
+                    payload.put("question_" + (i + 1), questions[i]);
+                    payload.put("answer_" + (i + 1), answers.get(i));
+                }
+                Response<RouteQuizResponseDto> resp = ApiClient.get(ChatActivity.this)
+                        .routeQuiz(new RouteQuizRequestDto(payload, true))
+                        .execute();
+                handler.post(() -> {
+                    String cat = "история";
+                    if (resp.isSuccessful() && resp.body() != null && resp.body().category != null
+                            && !resp.body().category.isEmpty()) {
+                        cat = resp.body().category;
+                    }
+                    addBotMessage("Ваше направление: " + cat);
+                    btnnext.setVisibility(VISIBLE);
+                });
+            } catch (Exception e) {
+                handler.post(() -> {
+                    addBotMessage("Не удалось определить направление. Попробуйте позже.");
+                    btnnext.setVisibility(VISIBLE);
+                });
             }
-            br.close();
-
-            return extractMessageFromJSONResponse(response.toString());
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            return "Большая нагрузка на сервер. Попробуйте еще раз через 30 секунд:)";
-        }
-    }
-
-    public static String extractMessageFromJSONResponse(String response) {
-        int start = response.indexOf("content") + 10;
-        int end = response.indexOf("\"", start);
-        return response.substring(start, end);
+        });
     }
 }

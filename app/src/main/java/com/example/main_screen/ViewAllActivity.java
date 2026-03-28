@@ -1,27 +1,26 @@
 package com.example.main_screen;
 
 import android.os.Bundle;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.main_screen.model.ViewAllModel;
-import com.example.main_screen.R;
 import com.example.main_screen.adapter.ViewAllAdapters;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QuerySnapshot;
+import com.example.main_screen.api.ApiClient;
+import com.example.main_screen.api.EventMapper;
+import com.example.main_screen.api.dto.EventItemDto;
+import com.example.main_screen.model.ViewAllModel;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+
+import retrofit2.Response;
 
 public class ViewAllActivity extends AppCompatActivity {
-    FirebaseFirestore firestore;
     List<ViewAllModel> viewAllModelList;
     ViewAllAdapters viewAllAdapters;
     RecyclerView recyclerView;
@@ -31,7 +30,6 @@ public class ViewAllActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_view_all);
-        firestore = FirebaseFirestore.getInstance();
         String type = getIntent().getStringExtra("type");
         recyclerView = findViewById(R.id.view_all_rec);
         recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
@@ -39,41 +37,37 @@ public class ViewAllActivity extends AppCompatActivity {
         viewAllAdapters = new ViewAllAdapters(this, viewAllModelList);
         recyclerView.setAdapter(viewAllAdapters);
 
-        if (type != null && type.equalsIgnoreCase("IT")){
-            firestore.collection("events").whereEqualTo("type", "IT").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                @Override
-                public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                    for (DocumentSnapshot documentSnapshot:task.getResult().getDocuments()){
-                        ViewAllModel viewAllModel = documentSnapshot.toObject(ViewAllModel.class);
-                        viewAllModelList.add(viewAllModel);
-                        viewAllAdapters.notifyDataSetChanged();
-                    }
-                }
-            });
+        final String apiType;
+        if (type != null && type.equalsIgnoreCase("IT")) {
+            apiType = "IT";
+        } else if (type != null && type.equalsIgnoreCase("Искусство")) {
+            apiType = "Искусство";
+        } else if (type != null && type.equalsIgnoreCase("История")) {
+            apiType = "История";
+        } else {
+            apiType = type;
         }
-        if (type != null && type.equalsIgnoreCase("Искусство")){
-            firestore.collection("events").whereEqualTo("type", "Искусство").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                @Override
-                public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                    for (DocumentSnapshot documentSnapshot:task.getResult().getDocuments()){
-                        ViewAllModel viewAllModel = documentSnapshot.toObject(ViewAllModel.class);
-                        viewAllModelList.add(viewAllModel);
-                        viewAllAdapters.notifyDataSetChanged();
+
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                Response<List<EventItemDto>> resp = ApiClient.get(ViewAllActivity.this)
+                        .listEvents(apiType, 100, 0)
+                        .execute();
+                runOnUiThread(() -> {
+                    viewAllModelList.clear();
+                    if (resp.isSuccessful() && resp.body() != null) {
+                        for (EventItemDto e : resp.body()) {
+                            viewAllModelList.add(EventMapper.toViewAll(e));
+                        }
+                    } else {
+                        Toast.makeText(ViewAllActivity.this, "Не удалось загрузить события", Toast.LENGTH_SHORT).show();
                     }
-                }
-            });
-        }
-        if (type != null && type.equalsIgnoreCase("История")){
-            firestore.collection("events").whereEqualTo("type", "История").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                @Override
-                public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                    for (DocumentSnapshot documentSnapshot:task.getResult().getDocuments()){
-                        ViewAllModel viewAllModel = documentSnapshot.toObject(ViewAllModel.class);
-                        viewAllModelList.add(viewAllModel);
-                        viewAllAdapters.notifyDataSetChanged();
-                    }
-                }
-            });
-        }
+                    viewAllAdapters.notifyDataSetChanged();
+                });
+            } catch (Exception e) {
+                runOnUiThread(() ->
+                        Toast.makeText(ViewAllActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show());
+            }
+        });
     }
 }

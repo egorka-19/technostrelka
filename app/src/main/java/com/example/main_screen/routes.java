@@ -1,32 +1,32 @@
 package com.example.main_screen;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.main_screen.adapter.ArtObjectAdapter;
+import com.example.main_screen.api.ApiClient;
+import com.example.main_screen.api.TokenStore;
+import com.example.main_screen.api.dto.UserMeDto;
 import com.example.main_screen.data.ArtObjectsData;
 import com.example.main_screen.data.HistoryObjectsData;
 import com.example.main_screen.data.ITObjectsData;
 import com.example.main_screen.model.ArtObject;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+
+import retrofit2.Response;
 
 public class routes extends AppCompatActivity implements ArtObjectAdapter.OnArtObjectClickListener {
-    private DatabaseReference userRef;
     private String userCategory;
     private RecyclerView recyclerView;
     private ArtObjectAdapter adapter;
@@ -38,7 +38,7 @@ public class routes extends AppCompatActivity implements ArtObjectAdapter.OnArtO
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_routes);
-        
+
         backButton = findViewById(R.id.back_button);
         titleTextView = findViewById(R.id.textView);
         recyclerView = findViewById(R.id.recyclerView);
@@ -48,30 +48,29 @@ public class routes extends AppCompatActivity implements ArtObjectAdapter.OnArtO
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
 
-        // Get current user's reference
-        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (currentUser != null) {
-            userRef = FirebaseDatabase.getInstance().getReference()
-                    .child("Users")
-                    .child(currentUser.getUid());
-            
-            // Load user's category
-            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    userCategory = dataSnapshot.child("category_user").getValue(String.class);
-                    if (userCategory != null && !userCategory.isEmpty()) {
-                        loadArtObjects();
-                    } else {
-                        Toast.makeText(routes.this, "Категория не выбрана", Toast.LENGTH_SHORT).show();
-                    }
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError databaseError) {
-                    Toast.makeText(routes.this, "Ошибка загрузки данных", Toast.LENGTH_SHORT).show();
+        if (TokenStore.get(this).hasAccessToken()) {
+            Executors.newSingleThreadExecutor().execute(() -> {
+                try {
+                    Response<UserMeDto> resp = ApiClient.get(routes.this).getMe().execute();
+                    runOnUiThread(() -> {
+                        if (resp.isSuccessful() && resp.body() != null) {
+                            userCategory = resp.body().categoryUser;
+                            if (userCategory != null && !userCategory.isEmpty()) {
+                                loadArtObjects();
+                            } else {
+                                Toast.makeText(routes.this, "Категория не выбрана", Toast.LENGTH_SHORT).show();
+                            }
+                        } else {
+                            Toast.makeText(routes.this, "Не удалось загрузить профиль", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                } catch (Exception e) {
+                    runOnUiThread(() ->
+                            Toast.makeText(routes.this, e.getMessage(), Toast.LENGTH_SHORT).show());
                 }
             });
+        } else {
+            Toast.makeText(this, "Войдите в аккаунт", Toast.LENGTH_SHORT).show();
         }
 
         backButton.setOnClickListener(v -> finish());
@@ -79,7 +78,7 @@ public class routes extends AppCompatActivity implements ArtObjectAdapter.OnArtO
 
     private void loadArtObjects() {
         artObjects.clear();
-        
+
         if (userCategory != null) {
             switch (userCategory.toLowerCase()) {
                 case "it":
@@ -101,7 +100,7 @@ public class routes extends AppCompatActivity implements ArtObjectAdapter.OnArtO
                     break;
             }
         }
-        
+
         adapter.notifyDataSetChanged();
     }
 

@@ -14,8 +14,8 @@ import com.example.main_screen.bottomnav.home.home_fragment;
 import com.example.main_screen.bottomnav.plus.PlusFragment;
 import com.example.main_screen.bottomnav.fav.fav_fragment;
 import com.example.main_screen.bottomnav.profile.ProfileFragment;
+import com.example.main_screen.api.TokenStore;
 import com.example.main_screen.databinding.ActivityMainBinding;
-import com.google.firebase.auth.FirebaseAuth;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -26,10 +26,11 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        if (FirebaseAuth.getInstance().getCurrentUser() == null){
+        if (!TokenStore.get(this).hasAccessToken()) {
             Intent i = new Intent(MainActivity.this, LoginActivity.class);
             startActivity(i);
             finish();
+            return;
         }
 
         getSupportFragmentManager().beginTransaction().replace(binding.fragmentContainer.getId(), new ThemainscreenFragment()).commit();

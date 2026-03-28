@@ -3,6 +3,8 @@ package com.example.main_screen.model;
 import java.io.Serializable;
 
 public class PlaceModel implements Serializable {
+    /** Опциональный UUID на backend (если место синхронизировано) */
+    private String serverId;
     private String name;
     private String description;
     private int imageResourceId;
@@ -34,6 +36,14 @@ public class PlaceModel implements Serializable {
         this.imageResourceId = imageResourceId;
         this.imageUrl = imageUrl;
         this.type = type;
+    }
+
+    public String getServerId() {
+        return serverId != null ? serverId : "";
+    }
+
+    public void setServerId(String serverId) {
+        this.serverId = serverId;
     }
 
     public String getName() {

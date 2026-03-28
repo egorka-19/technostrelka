@@ -14,8 +14,8 @@ import androidx.fragment.app.Fragment;
 import com.example.main_screen.bottomnav.home.home_fragment;
 import com.example.main_screen.bottomnav.profile.ProfileFragment;
 import com.example.main_screen.databinding.ActivitySettingsBinding;
-import com.google.firebase.Firebase;
-import com.google.firebase.auth.FirebaseAuth;
+import com.example.main_screen.api.ApiClient;
+import com.example.main_screen.api.TokenStore;
 import com.yandex.mapkit.MapKitFactory;
 
 public class Settings_Activity extends AppCompatActivity {
@@ -36,7 +36,10 @@ public class Settings_Activity extends AppCompatActivity {
         logoutbtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                TokenStore.get(Settings_Activity.this).clear();
+                ApiClient.reset();
                 startActivity(new Intent(Settings_Activity.this, LoginActivity.class));
+                finish();
             }
         });
         ImageButton helpme_btn = (ImageButton) findViewById(R.id.helpme_btn);

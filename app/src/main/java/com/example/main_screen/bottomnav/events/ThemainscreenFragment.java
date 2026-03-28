@@ -40,6 +40,14 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.example.main_screen.BuildConfig;
+import com.example.main_screen.api.ApiClient;
+import com.example.main_screen.api.EventMapper;
+import com.example.main_screen.api.TokenStore;
+import com.example.main_screen.api.dto.EventCategoryDto;
+import com.example.main_screen.api.dto.EventItemDto;
+import com.example.main_screen.api.dto.FavoriteStatusResponseDto;
+import com.example.main_screen.api.dto.UserMeDto;
 import com.example.main_screen.model.HomeCategory;
 import com.example.main_screen.model.PopularModel;
 import com.example.main_screen.model.ViewAllModel;
@@ -48,32 +56,22 @@ import com.example.main_screen.adapter.HomeAdapter;
 import com.example.main_screen.adapter.PopularAdapters;
 import com.example.main_screen.adapter.ViewAllAdapters;
 import com.example.main_screen.databinding.FragmentMainBinding;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.UploadTask;
 import com.makeramen.roundedimageview.RoundedImageView;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Executors;
+
+import retrofit2.Response;
 
 public class ThemainscreenFragment extends Fragment {
+    private static final int PAGE_SIZE = 100;
+
     ProgressBar progressBar;
     ScrollView scrollView;
     private FragmentMainBinding binding;
-    FirebaseFirestore db;
     private Uri filePath;
 
     private ImageButton nextButton, allCategoryBtn;
@@ -102,7 +100,6 @@ public class ThemainscreenFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = FragmentMainBinding.inflate(inflater, container, false);
         View view = binding.getRoot();
-        db = FirebaseFirestore.getInstance();
         popularRec = view.findViewById(R.id.pop_rec);
         homeCatRec = view.findViewById(R.id.exp_rec);
         progressBar = view.findViewById(R.id.progressbar);
@@ -131,8 +128,6 @@ public class ThemainscreenFragment extends Fragment {
         });
         popularRec.setAdapter(popularAdapters);
 
-        // Загрузка всех событий из Firebase
-        // TODO: Здесь можно изменить/добавить события - они загружаются из коллекции "events" в Firebase
         loadAllEvents();
 
         homeCatRec.setLayoutManager(new LinearLayoutManager(getActivity(), RecyclerView.HORIZONTAL, false));
@@ -146,24 +141,7 @@ public class ThemainscreenFragment extends Fragment {
         homeAdapter = new HomeAdapter(getActivity(), categoryList, this);
         homeCatRec.setAdapter(homeAdapter);
 
-        // Загрузка категорий из Firebase
-        db.collection("HomeCategory")
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            for (QueryDocumentSnapshot document : task.getResult()) {
-                                HomeCategory homeCategory = document.toObject(HomeCategory.class);
-                                categoryList.add(homeCategory);
-                                homeAdapter.notifyDataSetChanged();
-                            }
-                        } else {
-                            System.out.println("Error" + task.getException());
-                            Toast.makeText(getActivity(), "Error" + task.getException(), Toast.LENGTH_LONG).show();
-                        }
-                    }
-                });
+        loadEventCategoriesFromApi();
 
         ActivityResultLauncher<Intent> pickImageActivityResultLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
@@ -227,69 +205,190 @@ public class ThemainscreenFragment extends Fragment {
         return view;
     }
 
-    /**
-     * Загрузка аватарки пользователя из Firebase
-     */
-    private void loadUserAvatar() {
-        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
-            String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-            FirebaseDatabase.getInstance().getReference().child("Users").child(uid)
-                    .addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot snapshot) {
-                            if (snapshot.exists() && snapshot.hasChild("profileImage")) {
-                                String profileImageUrl = snapshot.child("profileImage").getValue(String.class);
-                                if (profileImageUrl != null && !profileImageUrl.isEmpty()) {
-                                    Glide.with(requireContext())
-                                            .load(profileImageUrl)
-                                            .circleCrop()
-                                            .error(R.drawable.profile)
-                                            .into(userAvatar);
-                                } else {
-                                    userAvatar.setImageResource(R.drawable.profile);
-                                }
-                            } else {
-                                userAvatar.setImageResource(R.drawable.profile);
-                            }
+    private void loadEventCategoriesFromApi() {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                Response<List<EventCategoryDto>> resp = ApiClient.get(requireContext()).getHomeCategories().execute();
+                if (resp.isSuccessful() && resp.body() != null && getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        for (EventCategoryDto c : resp.body()) {
+                            HomeCategory hc = new HomeCategory();
+                            hc.setId(c.id != null ? c.id : "");
+                            hc.setName(c.name != null ? c.name : "");
+                            hc.setType(c.type != null ? c.type : "");
+                            categoryList.add(hc);
                         }
-
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError error) {
-                            userAvatar.setImageResource(R.drawable.profile);
-                        }
+                        homeAdapter.notifyDataSetChanged();
                     });
-        } else {
-            userAvatar.setImageResource(R.drawable.profile);
+                }
+            } catch (Exception e) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() ->
+                            Toast.makeText(getActivity(), e.getMessage(), Toast.LENGTH_LONG).show());
+                }
+            }
+        });
+    }
+
+    private static String resolveMediaUrl(String url) {
+        if (url == null || url.isEmpty()) return "";
+        if (url.startsWith("http://") || url.startsWith("https://")) return url;
+        String base = BuildConfig.API_BASE_URL;
+        if (base.endsWith("/api/v1/")) {
+            base = base.substring(0, base.length() - "/api/v1/".length());
+        } else if (base.endsWith("/api/v1")) {
+            base = base.substring(0, base.length() - "/api/v1".length());
         }
+        if (!base.endsWith("/")) base += "/";
+        if (url.startsWith("/")) {
+            return base.substring(0, base.length() - 1) + url;
+        }
+        return base + url;
     }
 
     /**
-     * Загрузка всех событий из Firebase
-     * TODO: Здесь можно изменить/добавить события - они загружаются из коллекции "events" в Firebase
+     * Аватар с backend (GET /users/me).
      */
-    private void loadAllEvents() {
-        db.collection("events")
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            popularModelList.clear();
-                            for (QueryDocumentSnapshot document : task.getResult()) {
-                                PopularModel popularModel = document.toObject(PopularModel.class);
-                                popularModelList.add(popularModel);
-                            }
-                            popularAdapters.notifyDataSetChanged();
-                            progressBar.setVisibility(View.GONE);
-                            updateEmptyState();
-                        } else {
-                            System.out.println("Error" + task.getException());
-                            Toast.makeText(getActivity(), "Error" + task.getException(), Toast.LENGTH_LONG).show();
-                            progressBar.setVisibility(View.GONE);
-                            updateEmptyState();
+    private void loadUserAvatar() {
+        if (!TokenStore.get(requireContext()).hasAccessToken()) {
+            userAvatar.setImageResource(R.drawable.profile);
+            return;
+        }
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                Response<UserMeDto> resp = ApiClient.get(requireContext()).getMe().execute();
+                if (resp.isSuccessful() && resp.body() != null && resp.body().profileImageUrl != null
+                        && !resp.body().profileImageUrl.isEmpty() && getActivity() != null) {
+                    String url = resolveMediaUrl(resp.body().profileImageUrl);
+                    getActivity().runOnUiThread(() ->
+                            Glide.with(requireContext())
+                                    .load(url)
+                                    .circleCrop()
+                                    .error(R.drawable.profile)
+                                    .into(userAvatar));
+                } else if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> userAvatar.setImageResource(R.drawable.profile));
+                }
+            } catch (Exception e) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> userAvatar.setImageResource(R.drawable.profile));
+                }
+            }
+        });
+    }
+
+    private void mergeFavoriteStatusIntoPopularList() {
+        if (!TokenStore.get(requireContext()).hasAccessToken() || popularModelList == null || popularModelList.isEmpty()) {
+            return;
+        }
+        List<String> ids = new ArrayList<>();
+        for (PopularModel m : popularModelList) {
+            if (m.getServerId() != null && !m.getServerId().isEmpty()) {
+                ids.add(m.getServerId());
+            }
+        }
+        if (ids.isEmpty()) {
+            return;
+        }
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                Response<FavoriteStatusResponseDto> r =
+                        ApiClient.get(requireContext()).getFavoritesStatus(ids).execute();
+                if (!r.isSuccessful() || r.body() == null || r.body().favorites == null) {
+                    return;
+                }
+                Map<String, Boolean> map = r.body().favorites;
+                if (getActivity() == null) {
+                    return;
+                }
+                getActivity().runOnUiThread(() -> {
+                    for (PopularModel m : popularModelList) {
+                        Boolean b = map.get(m.getServerId());
+                        if (b != null) {
+                            m.setFavorite(b);
                         }
                     }
+                    if (popularAdapters != null) {
+                        popularAdapters.notifyDataSetChanged();
+                    }
                 });
+            } catch (Exception ignored) {
+            }
+        });
+    }
+
+    private void mergeFavoriteStatusIntoViewAllList() {
+        if (!TokenStore.get(requireContext()).hasAccessToken() || viewAllModelList == null || viewAllModelList.isEmpty()) {
+            return;
+        }
+        List<String> ids = new ArrayList<>();
+        for (ViewAllModel m : viewAllModelList) {
+            if (m.getServerId() != null && !m.getServerId().isEmpty()) {
+                ids.add(m.getServerId());
+            }
+        }
+        if (ids.isEmpty()) {
+            return;
+        }
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                Response<FavoriteStatusResponseDto> r =
+                        ApiClient.get(requireContext()).getFavoritesStatus(ids).execute();
+                if (!r.isSuccessful() || r.body() == null || r.body().favorites == null) {
+                    return;
+                }
+                Map<String, Boolean> map = r.body().favorites;
+                if (getActivity() == null) {
+                    return;
+                }
+                getActivity().runOnUiThread(() -> {
+                    for (ViewAllModel m : viewAllModelList) {
+                        Boolean b = map.get(m.getServerId());
+                        if (b != null) {
+                            m.setFavorite(b);
+                        }
+                    }
+                    if (viewAllAdapters != null) {
+                        viewAllAdapters.notifyDataSetChanged();
+                    }
+                });
+            } catch (Exception ignored) {
+            }
+        });
+    }
+
+    private void loadAllEvents() {
+        progressBar.setVisibility(VISIBLE);
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                Response<List<EventItemDto>> resp = ApiClient.get(requireContext())
+                        .listEvents(null, PAGE_SIZE, 0)
+                        .execute();
+                if (getActivity() == null) return;
+                getActivity().runOnUiThread(() -> {
+                    if (resp.isSuccessful() && resp.body() != null) {
+                        popularModelList.clear();
+                        for (EventItemDto e : resp.body()) {
+                            popularModelList.add(EventMapper.toPopular(e));
+                        }
+                        popularAdapters.notifyDataSetChanged();
+                        mergeFavoriteStatusIntoPopularList();
+                    } else {
+                        Toast.makeText(getActivity(), "Не удалось загрузить события", Toast.LENGTH_LONG).show();
+                    }
+                    progressBar.setVisibility(View.GONE);
+                    updateEmptyState();
+                });
+            } catch (Exception e) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        Toast.makeText(getActivity(), e.getMessage(), Toast.LENGTH_LONG).show();
+                        progressBar.setVisibility(View.GONE);
+                        updateEmptyState();
+                    });
+                }
+            }
+        });
     }
 
     public void showAllItems() {
@@ -310,103 +409,80 @@ public class ThemainscreenFragment extends Fragment {
             return;
         }
 
-        db.collection("events")
-                .whereEqualTo("type", categoryType)
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            popularModelList.clear();
-                            for (QueryDocumentSnapshot document : task.getResult()) {
-                                PopularModel popularModel = document.toObject(PopularModel.class);
-                                popularModelList.add(popularModel);
-                            }
-                            popularAdapters.notifyDataSetChanged();
-                            updateEmptyState();
-                        } else {
-                            System.out.println("Error" + task.getException());
-                            Toast.makeText(getActivity(), "Error" + task.getException(), Toast.LENGTH_LONG).show();
-                            updateEmptyState();
+        progressBar.setVisibility(VISIBLE);
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                Response<List<EventItemDto>> resp = ApiClient.get(requireContext())
+                        .listEvents(categoryType, PAGE_SIZE, 0)
+                        .execute();
+                if (getActivity() == null) return;
+                getActivity().runOnUiThread(() -> {
+                    if (resp.isSuccessful() && resp.body() != null) {
+                        popularModelList.clear();
+                        for (EventItemDto e : resp.body()) {
+                            popularModelList.add(EventMapper.toPopular(e));
                         }
+                        popularAdapters.notifyDataSetChanged();
+                        mergeFavoriteStatusIntoPopularList();
+                    } else {
+                        Toast.makeText(getActivity(), "Не удалось загрузить события", Toast.LENGTH_LONG).show();
                     }
+                    progressBar.setVisibility(View.GONE);
+                    updateEmptyState();
                 });
+            } catch (Exception e) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        Toast.makeText(getActivity(), e.getMessage(), Toast.LENGTH_LONG).show();
+                        progressBar.setVisibility(View.GONE);
+                        updateEmptyState();
+                    });
+                }
+            }
+        });
     }
 
-    /**
-     * Загрузка избранных событий из Firebase
-     */
     private void loadFavoriteEvents() {
-        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+        if (!TokenStore.get(requireContext()).hasAccessToken()) {
             popularModelList.clear();
             popularAdapters.notifyDataSetChanged();
             progressBar.setVisibility(View.GONE);
+            updateEmptyState();
             return;
         }
 
-        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         progressBar.setVisibility(VISIBLE);
-
-        // Сначала загружаем все избранные события из Realtime Database
-        DatabaseReference reviewsRef = FirebaseDatabase.getInstance().getReference("Reviews");
-        reviewsRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                List<String> favoriteEventNames = new ArrayList<>();
-                
-                // Собираем все названия событий, которые в избранном
-                for (DataSnapshot categorySnapshot : snapshot.getChildren()) {
-                    for (DataSnapshot eventSnapshot : categorySnapshot.getChildren()) {
-                        String eventName = eventSnapshot.getKey();
-                        DataSnapshot userSnapshot = eventSnapshot.child(userId);
-                        if (userSnapshot.exists() && userSnapshot.hasChild("lovest")) {
-                            Integer lovestValue = userSnapshot.child("lovest").getValue(Integer.class);
-                            if (lovestValue != null && lovestValue == 1) {
-                                favoriteEventNames.add(eventName);
-                            }
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                Response<List<EventItemDto>> resp = ApiClient.get(requireContext())
+                        .listMyFavorites()
+                        .execute();
+                if (getActivity() == null) return;
+                getActivity().runOnUiThread(() -> {
+                    if (resp.isSuccessful() && resp.body() != null) {
+                        popularModelList.clear();
+                        for (EventItemDto e : resp.body()) {
+                            PopularModel pm = EventMapper.toPopular(e);
+                            pm.setFavorite(true);
+                            popularModelList.add(pm);
                         }
+                        popularAdapters.notifyDataSetChanged();
+                    } else {
+                        Toast.makeText(getActivity(), "Войдите, чтобы видеть избранное", Toast.LENGTH_LONG).show();
+                        popularModelList.clear();
+                        popularAdapters.notifyDataSetChanged();
                     }
-                }
-                
-                // Теперь загружаем события из Firestore и фильтруем по избранным
-                if (favoriteEventNames.isEmpty()) {
-                    popularModelList.clear();
-                    popularAdapters.notifyDataSetChanged();
                     progressBar.setVisibility(View.GONE);
                     updateEmptyState();
-                    return;
+                });
+            } catch (Exception e) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        Toast.makeText(getActivity(), e.getMessage(), Toast.LENGTH_LONG).show();
+                        progressBar.setVisibility(View.GONE);
+                        updateEmptyState();
+                    });
                 }
-                
-                db.collection("events")
-                        .get()
-                        .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                            @Override
-                            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                                if (task.isSuccessful()) {
-                                    popularModelList.clear();
-                                    for (QueryDocumentSnapshot document : task.getResult()) {
-                                        PopularModel popularModel = document.toObject(PopularModel.class);
-                                        if (favoriteEventNames.contains(popularModel.getName())) {
-                                            popularModelList.add(popularModel);
-                                        }
-                                    }
-                                    popularAdapters.notifyDataSetChanged();
-                                } else {
-                                    System.out.println("Error" + task.getException());
-                                    Toast.makeText(getActivity(), "Error" + task.getException(), Toast.LENGTH_LONG).show();
-                                }
-                                progressBar.setVisibility(View.GONE);
-                                updateEmptyState();
-                            }
-                        });
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                popularModelList.clear();
-                popularAdapters.notifyDataSetChanged();
-                progressBar.setVisibility(View.GONE);
-                updateEmptyState();
             }
         });
     }
@@ -430,33 +506,6 @@ public class ThemainscreenFragment extends Fragment {
     }
 
     /**
-     * Преобразование типа категории для Firebase
-     */
-    private String getCategoryTypeForFirebase(String type) {
-        if (type == null) return "Other";
-        
-        switch (type) {
-            case "Кино":
-            case "Cinema":
-                return "Cinema";
-            case "Театр":
-            case "Theater":
-                return "Theater";
-            case "Парк":
-            case "Park":
-                return "Park";
-            case "Ресторан":
-            case "Restaurant":
-                return "Restaraunt";
-            case "Музей":
-            case "Museum":
-                return "Museum";
-            default:
-                return "Other";
-        }
-    }
-
-    /**
      * Улучшенный поиск: ищет по неполному совпадению в названии события
      * Ищет даже если введено неполное слово
      */
@@ -471,66 +520,46 @@ public class ThemainscreenFragment extends Fragment {
             return;
         }
 
-        // Загружаем все события и фильтруем локально для неполного совпадения
-        db.collection("events")
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful() && task.getResult() != null) {
-                            viewAllModelList.clear();
-                            
-                            for (DocumentSnapshot doc : task.getResult().getDocuments()) {
-                                PopularModel popularModel = doc.toObject(PopularModel.class);
-                                
-                                if (popularModel != null) {
-                                    String name = popularModel.getName() != null ? popularModel.getName().toLowerCase() : "";
-                                    String description = popularModel.getDescription() != null ? popularModel.getDescription().toLowerCase() : "";
-                                    String place = popularModel.getPlace() != null ? popularModel.getPlace().toLowerCase() : "";
-                                    
-                                    // Проверяем неполное совпадение в названии, описании или адресе
-                                    if (name.contains(searchText) || description.contains(searchText) || place.contains(searchText)) {
-                                        // Конвертируем PopularModel в ViewAllModel для результатов поиска
-                                        ViewAllModel viewAllModel = new ViewAllModel(
-                                                popularModel.getName(),
-                                                popularModel.getImg_url(),
-                                                popularModel.getDescription(),
-                                                popularModel.getAge(),
-                                                popularModel.getData(),
-                                                popularModel.getPlace(),
-                                                popularModel.getUrl()
-                                        );
-                                        viewAllModel.setType(popularModel.getType());
-                                        viewAllModelList.add(viewAllModel);
-                                    }
-                                }
-                            }
-                            
-                            viewAllAdapters.notifyDataSetChanged();
-                            
-                            // Показываем результаты поиска, скрываем основной список
-                            if (viewAllModelList.isEmpty()) {
-                                recyclerViewSearch.setVisibility(INVISIBLE);
-                                popularRec.setVisibility(VISIBLE);
-                                homeCatRec.setVisibility(VISIBLE);
-                                updateEmptyState();
-                            } else {
-                                recyclerViewSearch.setVisibility(VISIBLE);
-                                popularRec.setVisibility(INVISIBLE);
-                                homeCatRec.setVisibility(VISIBLE); // Фильтры оставляем видимыми
-                                // Скрываем пустое состояние при поиске
-                                if (emptyStateView != null) {
-                                    emptyStateView.setVisibility(View.GONE);
-                                }
-                            }
-                        } else {
-                            recyclerViewSearch.setVisibility(INVISIBLE);
-                            popularRec.setVisibility(VISIBLE);
-                            homeCatRec.setVisibility(VISIBLE);
-                            updateEmptyState();
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                Response<List<EventItemDto>> resp = ApiClient.get(requireContext())
+                        .searchEvents(searchText, PAGE_SIZE, 0)
+                        .execute();
+                if (getActivity() == null) return;
+                getActivity().runOnUiThread(() -> {
+                    viewAllModelList.clear();
+                    if (resp.isSuccessful() && resp.body() != null) {
+                        for (EventItemDto e : resp.body()) {
+                            viewAllModelList.add(EventMapper.toViewAll(e));
+                        }
+                        mergeFavoriteStatusIntoViewAllList();
+                    }
+                    viewAllAdapters.notifyDataSetChanged();
+                    if (viewAllModelList.isEmpty()) {
+                        recyclerViewSearch.setVisibility(INVISIBLE);
+                        popularRec.setVisibility(VISIBLE);
+                        homeCatRec.setVisibility(VISIBLE);
+                        updateEmptyState();
+                    } else {
+                        recyclerViewSearch.setVisibility(VISIBLE);
+                        popularRec.setVisibility(INVISIBLE);
+                        homeCatRec.setVisibility(VISIBLE);
+                        if (emptyStateView != null) {
+                            emptyStateView.setVisibility(View.GONE);
                         }
                     }
                 });
+            } catch (Exception e) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        recyclerViewSearch.setVisibility(INVISIBLE);
+                        popularRec.setVisibility(VISIBLE);
+                        homeCatRec.setVisibility(VISIBLE);
+                        updateEmptyState();
+                    });
+                }
+            }
+        });
     }
 
     /**

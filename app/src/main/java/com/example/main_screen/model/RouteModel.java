@@ -3,6 +3,7 @@ package com.example.main_screen.model;
 import java.io.Serializable;
 
 public class RouteModel implements Serializable {
+    private String id;
     private String name;
     private String imageUrl;
     private String description;
@@ -12,8 +13,19 @@ public class RouteModel implements Serializable {
     private String peopleCount; // Количество человек
     private String duration; // Продолжительность маршрута
     private String difficulty; // Сложность
+    /** Ссылка на источник (сайт афиши), для кнопки «на карте» / браузера. */
+    private String url;
+    private String place;
 
     public RouteModel() {
+    }
+
+    public String getId() {
+        return id != null ? id : "";
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public RouteModel(String name, String imageUrl, String description, String category, 
@@ -99,5 +111,21 @@ public class RouteModel implements Serializable {
 
     public void setDifficulty(String difficulty) {
         this.difficulty = difficulty;
+    }
+
+    public String getUrl() {
+        return url != null ? url : "";
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public String getPlace() {
+        return place != null ? place : "";
+    }
+
+    public void setPlace(String place) {
+        this.place = place;
     }
 }

@@ -1,7 +1,6 @@
 package com.example.main_screen.adapter;
 
 import android.content.Intent;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,15 +15,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.main_screen.R;
 import com.example.main_screen.Reviews_end_Activity;
-import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 
@@ -34,8 +29,6 @@ public class response extends RecyclerView.Adapter<response.MyViewHolder> {
     private Map<String, List<String>> productCategories;
     public String category, phone;
     private Random random = new Random();
-
-    FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     public response(List<String> dataList, Map<String, List<String>> productCategories) {
         this.dataList = dataList;
@@ -236,23 +229,8 @@ public class response extends RecyclerView.Adapter<response.MyViewHolder> {
             //Toast.makeText(holder.itemView.getContext(), "Данные отправлены: " + ratings.toString(), Toast.LENGTH_SHORT).show();
 
             // отправка этих данных в базу данных
-            float rating = holder.rating.getRating(); // извлечь
+            float rating = holder.rating.getRating();
             int rat = (int) rating;
-            // Получаем текущую дату
-            String currentDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
-
-            Map<String, Object> characteristicRatings = new HashMap<>();
-            characteristicRatings.put(characteristic1, rating1 + 1);
-            characteristicRatings.put(characteristic2, rating2 + 1);
-            characteristicRatings.put(characteristic3, rating3 + 1);
-
-            // Добавляем остальные характеристики, если их нет в оценках (по умолчанию можно ставить 0)
-            for (String characteristic : characteristics) {
-                if (!(characteristicRatings.containsKey(characteristic))){
-                    characteristicRatings.putIfAbsent(characteristic, 0);
-                }
-
-            }
             Intent intent = new Intent(holder.itemView.getContext(), Reviews_end_Activity.class);
             intent.putExtra("rating", rat);
             intent.putExtra("rating1", rating1 + 1);
@@ -263,22 +241,6 @@ public class response extends RecyclerView.Adapter<response.MyViewHolder> {
             intent.putExtra("characteristic2", characteristic2);
             intent.putExtra("characteristic3", characteristic3);
             holder.itemView.getContext().startActivity(intent);
-
-
-            // Формируем данные для записи в Firestore
-            Map<String, Object> reviewData = new HashMap<>();
-            reviewData.put("rating", rating); // Общая оценка
-            reviewData.put("date", currentDate); // Текущая дата
-            reviewData.put("characteristicRatings", characteristicRatings); // Оценки по характеристикам
-
-            // Записываем данные в Firestore
-            db.collection("ProductCategories")
-                    .document(category) // Категория (например, "электроника")
-                    .collection(productId) // ID товара
-                    .document(userId) // ID пользователя
-                    .set(reviewData)
-                    .addOnSuccessListener(aVoid -> Log.d("Firestore", "Данные успешно добавлены!"))
-                    .addOnFailureListener(e -> Log.w("Firestore", "Ошибка при добавлении данных", e));
 
         });
     }

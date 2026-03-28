@@ -33,17 +33,14 @@ import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
+import com.example.main_screen.api.ApiClient;
+import com.example.main_screen.api.TokenStore;
 import com.example.main_screen.model.PopularModel;
 import com.example.main_screen.R;
 import com.example.main_screen.product_card;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import java.util.List;
+import java.util.concurrent.Executors;
 
 public class PopularAdapters extends RecyclerView.Adapter<PopularAdapters.ViewHolder> {
 
@@ -107,8 +104,7 @@ public class PopularAdapters extends RecyclerView.Adapter<PopularAdapters.ViewHo
             // Название события
             holder.eventName.setText(currentItem.getName());
 
-            // Загрузка рейтинга из отзывов клиентов
-            loadRatingFromReviews(currentItem, holder);
+            applyRatingFromModel(currentItem, holder);
 
             // Возрастные ограничения
             // TODO: Загружать из Firebase, временно значение по умолчанию
@@ -154,7 +150,6 @@ public class PopularAdapters extends RecyclerView.Adapter<PopularAdapters.ViewHo
                 holder.eventAddress.setText("Ижевск, ул. Милиционная, 5");
             }
 
-            // Проверка состояния избранного из Firebase
             checkFavoriteStatus(currentItem, holder);
 
             // Обработчик клика на карточку
@@ -178,43 +173,12 @@ public class PopularAdapters extends RecyclerView.Adapter<PopularAdapters.ViewHo
         }
     }
 
-    /**
-     * Проверка состояния избранного из Firebase
-     */
     private void checkFavoriteStatus(PopularModel item, ViewHolder holder) {
-        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+        if (!TokenStore.get(context).hasAccessToken()) {
             setFavoriteIconState(holder, false);
             return;
         }
-
-        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        String eventName = item.getName();
-        String categoryType = getCategoryTypeForFirebase(item.getType());
-
-        DatabaseReference favoriteRef = FirebaseDatabase.getInstance()
-                .getReference("Reviews")
-                .child(categoryType)
-                .child(eventName)
-                .child(userId)
-                .child("lovest");
-
-        favoriteRef.addListenerForSingleValueEvent(new com.google.firebase.database.ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull com.google.firebase.database.DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    Integer lovestValue = snapshot.getValue(Integer.class);
-                    boolean isFavorite = lovestValue != null && lovestValue == 1;
-                    setFavoriteIconState(holder, isFavorite);
-                } else {
-                    setFavoriteIconState(holder, false);
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull com.google.firebase.database.DatabaseError error) {
-                setFavoriteIconState(holder, false);
-            }
-        });
+        setFavoriteIconState(holder, item.isFavorite());
     }
 
     /**
@@ -240,143 +204,49 @@ public class PopularAdapters extends RecyclerView.Adapter<PopularAdapters.ViewHo
      * Переключение состояния избранного
      */
     private void toggleFavorite(PopularModel item, ViewHolder holder) {
-        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+        if (item.getServerId() == null || item.getServerId().isEmpty()) {
+            return;
+        }
+        if (!TokenStore.get(context).hasAccessToken()) {
             return;
         }
 
-        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        String eventName = item.getName();
-        String categoryType = getCategoryTypeForFirebase(item.getType());
-
-        DatabaseReference favoriteRef = FirebaseDatabase.getInstance()
-                .getReference("Reviews")
-                .child(categoryType)
-                .child(eventName)
-                .child(userId)
-                .child("lovest");
-
         boolean isCurrentlyFavorite = holder.favoriteIcon.getTag() != null && holder.favoriteIcon.getTag().equals("favorite");
-        int newValue = isCurrentlyFavorite ? 0 : 1;
 
-        favoriteRef.setValue(newValue).addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                if (newValue == 1) {
-                    // Добавлено в избранное - заливаем красным цветом FF0033
-                    setFavoriteIconState(holder, true);
-                    
-                    // Показываем анимацию уведомления
-                    if (notificationListener != null) {
-                        notificationListener.showFavoriteNotification();
-                    }
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                if (isCurrentlyFavorite) {
+                    ApiClient.get(context).removeFavorite(item.getServerId()).execute();
                 } else {
-                    // Удалено из избранного - убираем заливку
-                    setFavoriteIconState(holder, false);
+                    ApiClient.get(context).addFavorite(item.getServerId()).execute();
                 }
-
-                // Уведомляем слушателя об изменении
-                if (favoriteChangeListener != null) {
-                    favoriteChangeListener.onFavoriteChanged();
-                }
-            }
-        });
-    }
-
-    /**
-     * Загрузка рейтинга из отзывов клиентов
-     */
-    private void loadRatingFromReviews(PopularModel item, ViewHolder holder) {
-        String eventName = item.getName();
-        String categoryType = getCategoryTypeForFirebase(item.getType());
-        
-        DatabaseReference reviewsRef = FirebaseDatabase.getInstance()
-                .getReference("Reviews")
-                .child(categoryType)
-                .child(eventName);
-        
-        reviewsRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    double totalRating = 0.0;
-                    int reviewCount = 0;
-                    
-                    // Проходим по всем пользователям, оставившим отзывы
-                    for (DataSnapshot userSnapshot : snapshot.getChildren()) {
-                        if (userSnapshot.hasChild("rating")) {
-                            Object ratingObj = userSnapshot.child("rating").getValue();
-                            if (ratingObj != null) {
-                                try {
-                                    double rating = 0.0;
-                                    if (ratingObj instanceof Number) {
-                                        rating = ((Number) ratingObj).doubleValue();
-                                    } else if (ratingObj instanceof String) {
-                                        rating = Double.parseDouble((String) ratingObj);
-                                    }
-                                    
-                                    if (rating > 0 && rating <= 5) {
-                                        totalRating += rating;
-                                        reviewCount++;
-                                    }
-                                } catch (Exception e) {
-                                    Log.e("RatingError", "Error parsing rating", e);
-                                }
-                            }
+                if (context instanceof AppCompatActivity) {
+                    ((AppCompatActivity) context).runOnUiThread(() -> {
+                        boolean newFav = !isCurrentlyFavorite;
+                        setFavoriteIconState(holder, newFav);
+                        item.setFavorite(newFav);
+                        if (newFav && notificationListener != null) {
+                            notificationListener.showFavoriteNotification();
                         }
-                    }
-                    
-                    if (reviewCount > 0) {
-                        double averageRating = totalRating / reviewCount;
-                        // Округляем до 1 знака после запятой
-                        String ratingText = String.format("%.1f", averageRating);
-                        holder.eventRating.setText(ratingText);
-                        holder.starIcon.setVisibility(View.VISIBLE);
-                        holder.eventRating.setVisibility(View.VISIBLE);
-                    } else {
-                        holder.eventRating.setText("0");
-                        holder.starIcon.setVisibility(View.VISIBLE);
-                        holder.eventRating.setVisibility(View.VISIBLE);
-                    }
-                } else {
-                    holder.eventRating.setText("0");
-                    holder.starIcon.setVisibility(View.VISIBLE);
-                    holder.eventRating.setVisibility(View.VISIBLE);
+                        if (favoriteChangeListener != null) {
+                            favoriteChangeListener.onFavoriteChanged();
+                        }
+                    });
                 }
-            }
-            
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Log.e("RatingError", "Error loading rating", error.toException());
-                holder.starIcon.setVisibility(View.GONE);
-                holder.eventRating.setVisibility(View.GONE);
+            } catch (Exception e) {
+                Log.e("Api", "favorite toggle", e);
             }
         });
     }
 
-    /**
-     * Преобразование типа категории для Firebase
-     */
-    private String getCategoryTypeForFirebase(String type) {
-        if (type == null) return "Other";
-        
-        switch (type) {
-            case "Кино":
-            case "Cinema":
-                return "Cinema";
-            case "Театр":
-            case "Theater":
-                return "Theater";
-            case "Парк":
-            case "Park":
-                return "Park";
-            case "Ресторан":
-            case "Restaurant":
-                return "Restaraunt";
-            case "Музей":
-            case "Museum":
-                return "Museum";
-            default:
-                return "Other";
+    private void applyRatingFromModel(PopularModel item, ViewHolder holder) {
+        String r = item.getRating();
+        if (r == null || r.isEmpty()) {
+            r = "0";
         }
+        holder.eventRating.setText(r);
+        holder.starIcon.setVisibility(View.VISIBLE);
+        holder.eventRating.setVisibility(View.VISIBLE);
     }
 
     @Override

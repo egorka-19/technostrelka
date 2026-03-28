@@ -1,3 +1,6 @@
+# API вынесен в отдельный репозиторий: в каталоге backend/ свой .git (см. backend/README.md)
+/backend/
+
 *.iml
 .gradle
 /local.properties

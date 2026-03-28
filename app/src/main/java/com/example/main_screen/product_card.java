@@ -39,6 +39,7 @@ import com.example.main_screen.model.PopularModel;
 import com.example.main_screen.model.RouteModel;
 import com.example.main_screen.model.ViewAllModel;
 import com.example.main_screen.utils.BlurUtils;
+import com.example.main_screen.utils.MediaUrlUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -432,25 +433,7 @@ public class product_card extends AppCompatActivity {
     }
 
     private static String resolveMediaUrl(String url) {
-        if (url == null || url.isEmpty()) {
-            return "";
-        }
-        if (url.startsWith("http://") || url.startsWith("https://")) {
-            return url;
-        }
-        String base = com.example.main_screen.BuildConfig.API_BASE_URL;
-        if (base.endsWith("/api/v1/")) {
-            base = base.substring(0, base.length() - "/api/v1/".length());
-        } else if (base.endsWith("/api/v1")) {
-            base = base.substring(0, base.length() - "/api/v1".length());
-        }
-        if (!base.endsWith("/")) {
-            base += "/";
-        }
-        if (url.startsWith("/")) {
-            return base.substring(0, base.length() - 1) + url;
-        }
-        return base + url;
+        return MediaUrlUtils.resolveForApiClient(url);
     }
 
     private String getEventName() {

@@ -4,165 +4,119 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
+    android:background="@color/fon"
     tools:context=".bottomnav.plus.PlusFragment">
 
-    <!-- Поле поиска -->
     <androidx.cardview.widget.CardView
         android:id="@+id/search_card"
         android:layout_width="0dp"
         android:layout_height="48dp"
         android:layout_marginStart="16dp"
-        android:layout_marginEnd="12dp"
         android:layout_marginTop="16dp"
-        app:cardCornerRadius="24dp"
-        app:cardElevation="2dp"
+        android:layout_marginEnd="12dp"
         app:cardBackgroundColor="@color/light_gray"
-        app:layout_constraintStart_toStartOf="parent"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="0dp"
         app:layout_constraintEnd_toStartOf="@id/filter_button"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="horizontal"
             android:gravity="center_vertical"
+            android:orientation="horizontal"
             android:paddingStart="16dp"
             android:paddingEnd="16dp">
 
             <ImageView
                 android:layout_width="20dp"
                 android:layout_height="20dp"
+                android:contentDescription="@null"
                 android:src="@drawable/search"
-                android:tint="@color/gray" />
+                app:tint="@color/gray" />
 
             <EditText
                 android:id="@+id/search_box"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="1"
                 android:layout_marginStart="8dp"
+                android:layout_weight="1"
                 android:background="@android:color/transparent"
-                android:hint="Найти тур"
-                android:textSize="16sp"
-                android:textColorHint="@color/gray"
                 android:fontFamily="@font/sfprodisplay1semibold"
+                android:hint="Найти тур"
                 android:inputType="text"
-                android:maxLines="1" />
+                android:maxLines="1"
+                android:textColorHint="@color/gray"
+                android:textSize="16sp" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <!-- Кнопка фильтров -->
     <ImageButton
         android:id="@+id/filter_button"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:layout_marginEnd="16dp"
         android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
         android:background="@drawable/rounded_corners"
-        android:src="@drawable/filter"
         android:contentDescription="Фильтры"
+        android:src="@drawable/filter"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- ScrollView для категорий маршрутов -->
     <ScrollView
         android:id="@+id/routes_scroll_view"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/search_card"
+        android:layout_marginTop="12dp"
+        android:clipToPadding="false"
+        android:fillViewport="true"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toBottomOf="@id/search_card">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingBottom="16dp">
+            android:paddingBottom="24dp">
 
-            <!-- TODO: Категории маршрутов будут добавляться динамически -->
-            <!-- Пример категории "С детьми" -->
-            <TextView
-                android:id="@+id/category_children"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="10dp"
-                android:fontFamily="@font/sfprodisplay1semibold"
-                android:text="С детьми"
-                android:textColor="@color/black"
-                android:textSize="24sp"
-                android:textStyle="bold" />
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/routes_children_recycler"
+            <LinearLayout
+                android:id="@+id/routes_categories_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:paddingStart="16dp"
-                android:paddingTop="16dp"
-                android:paddingEnd="16dp"
-                android:paddingBottom="16dp" />
+                android:orientation="vertical" />
 
-            <!-- Пример категории "Романтические" -->
             <TextView
-                android:id="@+id/category_romantic"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="10dp"
-                android:fontFamily="@font/sfprodisplay1semibold"
-                android:text="Романтические"
-                android:textColor="@color/black"
-                android:textSize="24sp"
-                android:textStyle="bold" />
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/routes_romantic_recycler"
+                android:id="@+id/routes_empty"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:padding="16dp" />
-
-            <!-- Пример категории "Исторические" -->
-            <TextView
-                android:id="@+id/category_historical"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="10dp"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="48dp"
+                android:layout_marginEnd="24dp"
                 android:fontFamily="@font/sfprodisplay1semibold"
-                android:text="Исторические"
-                android:textColor="@color/black"
-                android:textSize="24sp"
-                android:textStyle="bold" />
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/routes_historical_recycler"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:padding="16dp" />
-
+                android:gravity="center"
+                android:text="Пока нет маршрутов. Потяните вниз позже или проверьте сеть."
+                android:textColor="@color/dark_gray"
+                android:textSize="15sp"
+                android:visibility="gone" />
         </LinearLayout>
     </ScrollView>
 
-    <!-- RecyclerView для результатов поиска (скрыт по умолчанию) -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/search_results_recycler"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="12dp"
+        android:clipToPadding="false"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
         android:paddingBottom="16dp"
         android:visibility="gone"
-        android:clipToPadding="false"
-        app:layout_constraintTop_toBottomOf="@id/search_card"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/search_card" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

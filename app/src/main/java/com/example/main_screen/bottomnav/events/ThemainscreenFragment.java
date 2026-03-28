@@ -40,9 +40,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.example.main_screen.BuildConfig;
 import com.example.main_screen.api.ApiClient;
 import com.example.main_screen.api.EventMapper;
+import com.example.main_screen.api.ReviewRatingPrefetch;
 import com.example.main_screen.api.TokenStore;
 import com.example.main_screen.api.dto.EventCategoryDto;
 import com.example.main_screen.api.dto.EventItemDto;
@@ -56,6 +56,7 @@ import com.example.main_screen.adapter.HomeAdapter;
 import com.example.main_screen.adapter.PopularAdapters;
 import com.example.main_screen.adapter.ViewAllAdapters;
 import com.example.main_screen.databinding.FragmentMainBinding;
+import com.example.main_screen.utils.MediaUrlUtils;
 import com.makeramen.roundedimageview.RoundedImageView;
 
 import java.io.IOException;
@@ -230,22 +231,6 @@ public class ThemainscreenFragment extends Fragment {
         });
     }
 
-    private static String resolveMediaUrl(String url) {
-        if (url == null || url.isEmpty()) return "";
-        if (url.startsWith("http://") || url.startsWith("https://")) return url;
-        String base = BuildConfig.API_BASE_URL;
-        if (base.endsWith("/api/v1/")) {
-            base = base.substring(0, base.length() - "/api/v1/".length());
-        } else if (base.endsWith("/api/v1")) {
-            base = base.substring(0, base.length() - "/api/v1".length());
-        }
-        if (!base.endsWith("/")) base += "/";
-        if (url.startsWith("/")) {
-            return base.substring(0, base.length() - 1) + url;
-        }
-        return base + url;
-    }
-
     /**
      * Аватар с backend (GET /users/me).
      */
@@ -259,11 +244,12 @@ public class ThemainscreenFragment extends Fragment {
                 Response<UserMeDto> resp = ApiClient.get(requireContext()).getMe().execute();
                 if (resp.isSuccessful() && resp.body() != null && resp.body().profileImageUrl != null
                         && !resp.body().profileImageUrl.isEmpty() && getActivity() != null) {
-                    String url = resolveMediaUrl(resp.body().profileImageUrl);
+                    String url = MediaUrlUtils.resolveForApiClient(resp.body().profileImageUrl);
                     getActivity().runOnUiThread(() ->
                             Glide.with(requireContext())
                                     .load(url)
                                     .circleCrop()
+                                    .placeholder(R.drawable.profile)
                                     .error(R.drawable.profile)
                                     .into(userAvatar));
                 } else if (getActivity() != null) {
@@ -373,6 +359,12 @@ public class ThemainscreenFragment extends Fragment {
                         }
                         popularAdapters.notifyDataSetChanged();
                         mergeFavoriteStatusIntoPopularList();
+                        ReviewRatingPrefetch.prefetchForPopularModels(requireContext(), popularModelList,
+                                () -> {
+                                    if (popularAdapters != null) {
+                                        popularAdapters.notifyDataSetChanged();
+                                    }
+                                });
                     } else {
                         Toast.makeText(getActivity(), "Не удалось загрузить события", Toast.LENGTH_LONG).show();
                     }
@@ -424,6 +416,12 @@ public class ThemainscreenFragment extends Fragment {
                         }
                         popularAdapters.notifyDataSetChanged();
                         mergeFavoriteStatusIntoPopularList();
+                        ReviewRatingPrefetch.prefetchForPopularModels(requireContext(), popularModelList,
+                                () -> {
+                                    if (popularAdapters != null) {
+                                        popularAdapters.notifyDataSetChanged();
+                                    }
+                                });
                     } else {
                         Toast.makeText(getActivity(), "Не удалось загрузить события", Toast.LENGTH_LONG).show();
                     }
@@ -467,6 +465,12 @@ public class ThemainscreenFragment extends Fragment {
                             popularModelList.add(pm);
                         }
                         popularAdapters.notifyDataSetChanged();
+                        ReviewRatingPrefetch.prefetchForPopularModels(requireContext(), popularModelList,
+                                () -> {
+                                    if (popularAdapters != null) {
+                                        popularAdapters.notifyDataSetChanged();
+                                    }
+                                });
                     } else {
                         Toast.makeText(getActivity(), "Войдите, чтобы видеть избранное", Toast.LENGTH_LONG).show();
                         popularModelList.clear();
@@ -533,6 +537,12 @@ public class ThemainscreenFragment extends Fragment {
                             viewAllModelList.add(EventMapper.toViewAll(e));
                         }
                         mergeFavoriteStatusIntoViewAllList();
+                        ReviewRatingPrefetch.prefetchForViewAllModels(requireContext(), viewAllModelList,
+                                () -> {
+                                    if (viewAllAdapters != null) {
+                                        viewAllAdapters.notifyDataSetChanged();
+                                    }
+                                });
                     }
                     viewAllAdapters.notifyDataSetChanged();
                     if (viewAllModelList.isEmpty()) {

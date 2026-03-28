@@ -22,7 +22,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
-import com.example.main_screen.BuildConfig;
+import com.example.main_screen.R;
 import com.example.main_screen.ProfileChatActivity;
 import com.example.main_screen.Settings_Activity;
 import com.example.main_screen.api.ApiClient;
@@ -30,6 +30,7 @@ import com.example.main_screen.api.TokenStore;
 import com.example.main_screen.api.dto.UserMeDto;
 import com.example.main_screen.databinding.FragmentProfileBinding;
 import com.example.main_screen.service.ScoreService;
+import com.example.main_screen.utils.MediaUrlUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -98,22 +99,6 @@ public class ProfileFragment extends Fragment {
             }
     );
 
-    private static String resolveMediaUrl(String url) {
-        if (url == null || url.isEmpty()) return "";
-        if (url.startsWith("http://") || url.startsWith("https://")) return url;
-        String base = BuildConfig.API_BASE_URL;
-        if (base.endsWith("/api/v1/")) {
-            base = base.substring(0, base.length() - "/api/v1/".length());
-        } else if (base.endsWith("/api/v1")) {
-            base = base.substring(0, base.length() - "/api/v1".length());
-        }
-        if (!base.endsWith("/")) base += "/";
-        if (url.startsWith("/")) {
-            return base.substring(0, base.length() - 1) + url;
-        }
-        return base + url;
-    }
-
     private void loadUserInfo() {
         if (!TokenStore.get(requireContext()).hasAccessToken()) {
             return;
@@ -133,10 +118,15 @@ public class ProfileFragment extends Fragment {
                     binding.profileEmail.setText(u.email != null ? u.email : "");
 
                     if (u.profileImageUrl != null && !u.profileImageUrl.isEmpty()) {
+                        String src = MediaUrlUtils.resolveForApiClient(u.profileImageUrl);
                         Glide.with(requireContext())
-                                .load(resolveMediaUrl(u.profileImageUrl))
+                                .load(src)
                                 .circleCrop()
+                                .placeholder(R.drawable.profile)
+                                .error(R.drawable.profile)
                                 .into(binding.profileImage);
+                    } else {
+                        binding.profileImage.setImageResource(R.drawable.profile);
                     }
 
                     int score = ScoreService.getInstance().getScore();
@@ -177,7 +167,17 @@ public class ProfileFragment extends Fragment {
                 Response<UserMeDto> resp = ApiClient.get(requireContext()).uploadAvatar(part).execute();
                 requireActivity().runOnUiThread(() -> {
                     if (!isAdded()) return;
-                    if (resp.isSuccessful()) {
+                    if (resp.isSuccessful() && resp.body() != null) {
+                        UserMeDto u = resp.body();
+                        if (u.profileImageUrl != null && !u.profileImageUrl.isEmpty()) {
+                            String src = MediaUrlUtils.resolveForApiClient(u.profileImageUrl);
+                            Glide.with(requireContext())
+                                    .load(src)
+                                    .circleCrop()
+                                    .placeholder(R.drawable.profile)
+                                    .error(R.drawable.profile)
+                                    .into(binding.profileImage);
+                        }
                         Toast.makeText(getContext(), "Фото успешно загружено", Toast.LENGTH_SHORT).show();
                         loadUserInfo();
                     } else {

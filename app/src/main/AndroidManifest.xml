@@ -146,6 +146,14 @@
         <activity
             android:name=".RoutesFilterActivity"
             android:exported="false" />
+        <activity
+            android:name=".RoutePreviewActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MaterialComponents.Light.NoActionBar" />
+        <activity
+            android:name=".RouteItineraryActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MaterialComponents.Light.NoActionBar" />
 
         <meta-data
             android:name="preloaded_fonts"

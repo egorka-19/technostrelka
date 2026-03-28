@@ -10,6 +10,8 @@ public final class TokenStore {
     private static final String PREF = "technostrelka_auth";
     private static final String ACCESS = "access_token";
     private static final String REFRESH = "refresh_token";
+    /** Если false — при следующем холодном старте токены сбрасываются (нужен вход снова). */
+    private static final String REMEMBER_ME = "remember_me";
 
     private final SharedPreferences prefs;
 
@@ -34,11 +36,28 @@ public final class TokenStore {
         return prefs.getString(REFRESH, null);
     }
 
-    public void saveTokens(String accessToken, String refreshToken) {
+    /**
+     * Сохранить сессию. {@code rememberMe == true} — оставаться в аккаунте после перезапуска приложения.
+     */
+    public void saveTokens(String accessToken, String refreshToken, boolean rememberMe) {
         prefs.edit()
-                .putString(ACCESS, accessToken)
-                .putString(REFRESH, refreshToken)
+                .putString(ACCESS, accessToken != null ? accessToken : "")
+                .putString(REFRESH, refreshToken != null ? refreshToken : "")
+                .putBoolean(REMEMBER_ME, rememberMe)
                 .apply();
+    }
+
+    /** То же, что {@link #saveTokens(String, String, boolean)} с «запомнить» = true (регистрация и старый код). */
+    public void saveTokens(String accessToken, String refreshToken) {
+        saveTokens(accessToken, refreshToken, true);
+    }
+
+    /**
+     * Можно ли восстанавливать сохранённую сессию при запуске.
+     * Для старых установок без ключа — по умолчанию true, чтобы не выкидывать пользователей.
+     */
+    public boolean isRememberMeEnabled() {
+        return prefs.getBoolean(REMEMBER_ME, true);
     }
 
     public void clear() {

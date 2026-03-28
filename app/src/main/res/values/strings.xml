@@ -44,4 +44,9 @@
     <string name="menu_gallery">Gallery</string>
     <string name="menu_slideshow">Slideshow</string>
 
+    <string name="cd_back">Назад</string>
+    <string name="route_start">Начать</string>
+    <string name="route_itinerary_placeholder">Точки маршрута и аудиогид появятся здесь позже.</string>
+    <string name="remember_me">Запомнить меня</string>
+
 </resources>

@@ -10,8 +10,8 @@
         android:icon="@drawable/map"/>
     <item
         android:id="@+id/plus"
-        android:title="Обучение"
-        android:icon="@drawable/study"/>
+        android:title="@string/road"
+        android:icon="@drawable/ic_route"/>
     <item
         android:id="@+id/profile"
         android:title="Профиль"

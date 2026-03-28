@@ -57,7 +57,7 @@ public class RegisterActivity extends AppCompatActivity {
                         loadingBar.dismiss();
                         if (response.isSuccessful() && response.body() != null) {
                             TokenResponseDto t = response.body();
-                            TokenStore.get(RegisterActivity.this).saveTokens(t.accessToken, t.refreshToken);
+                            TokenStore.get(RegisterActivity.this).saveTokens(t.accessToken, t.refreshToken, true);
                             startActivity(new Intent(RegisterActivity.this, MainActivity.class));
                             finish();
                         } else {

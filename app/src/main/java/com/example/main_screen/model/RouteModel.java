@@ -1,6 +1,8 @@
 package com.example.main_screen.model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 public class RouteModel implements Serializable {
     private String id;
@@ -16,6 +18,8 @@ public class RouteModel implements Serializable {
     /** Ссылка на источник (сайт афиши), для кнопки «на карте» / браузера. */
     private String url;
     private String place;
+    /** Точки маршрута (парсинг visitudmurtia.org и т.п.). */
+    private List<RouteStop> stops;
 
     public RouteModel() {
     }
@@ -127,5 +131,13 @@ public class RouteModel implements Serializable {
 
     public void setPlace(String place) {
         this.place = place;
+    }
+
+    public List<RouteStop> getStops() {
+        return stops != null ? stops : new ArrayList<>();
+    }
+
+    public void setStops(List<RouteStop> stops) {
+        this.stops = stops;
     }
 }

@@ -54,7 +54,8 @@ public class LoginActivity extends AppCompatActivity {
                         loadingBar.dismiss();
                         if (response.isSuccessful() && response.body() != null) {
                             TokenResponseDto t = response.body();
-                            TokenStore.get(LoginActivity.this).saveTokens(t.accessToken, t.refreshToken);
+                            boolean remember = binding.rememberMeCheckbox.isChecked();
+                            TokenStore.get(LoginActivity.this).saveTokens(t.accessToken, t.refreshToken, remember);
                             startActivity(new Intent(LoginActivity.this, MainActivity.class));
                             finish();
                         } else {

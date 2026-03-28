@@ -14,9 +14,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.main_screen.R;
 import com.example.main_screen.model.RouteModel;
-import com.example.main_screen.product_card;
+import com.example.main_screen.RoutePreviewActivity;
+import com.example.main_screen.utils.MediaUrlUtils;
 import com.makeramen.roundedimageview.RoundedImageView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class RouteAdapter extends RecyclerView.Adapter<RouteAdapter.ViewHolder> {
@@ -36,7 +38,7 @@ public class RouteAdapter extends RecyclerView.Adapter<RouteAdapter.ViewHolder> 
     }
 
     public void setRoutes(List<RouteModel> routes) {
-        this.routeList = routes;
+        this.routeList = routes != null ? routes : new ArrayList<>();
         notifyDataSetChanged();
     }
 
@@ -53,9 +55,10 @@ public class RouteAdapter extends RecyclerView.Adapter<RouteAdapter.ViewHolder> 
         RouteModel route = routeList.get(position);
 
         // Загрузка изображения
-        if (!TextUtils.isEmpty(route.getImageUrl())) {
+        String resolved = MediaUrlUtils.resolveForApiClient(route.getImageUrl());
+        if (!TextUtils.isEmpty(resolved)) {
             Glide.with(context)
-                    .load(route.getImageUrl())
+                    .load(resolved)
                     .error(R.drawable.izo)
                     .into(holder.routeImage);
         } else {
@@ -67,8 +70,8 @@ public class RouteAdapter extends RecyclerView.Adapter<RouteAdapter.ViewHolder> 
 
         // Обработчик клика на карточку
         holder.itemView.setOnClickListener(v -> {
-            Intent intent = new Intent(context, product_card.class);
-            intent.putExtra("detail", route);
+            Intent intent = new Intent(context, RoutePreviewActivity.class);
+            intent.putExtra(RoutePreviewActivity.EXTRA_ROUTE, route);
             context.startActivity(intent);
         });
     }

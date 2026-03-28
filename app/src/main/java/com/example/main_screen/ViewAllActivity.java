@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.main_screen.adapter.ViewAllAdapters;
 import com.example.main_screen.api.ApiClient;
 import com.example.main_screen.api.EventMapper;
+import com.example.main_screen.api.ReviewRatingPrefetch;
 import com.example.main_screen.api.dto.EventItemDto;
 import com.example.main_screen.model.ViewAllModel;
 
@@ -63,6 +64,8 @@ public class ViewAllActivity extends AppCompatActivity {
                         Toast.makeText(ViewAllActivity.this, "Не удалось загрузить события", Toast.LENGTH_SHORT).show();
                     }
                     viewAllAdapters.notifyDataSetChanged();
+                    ReviewRatingPrefetch.prefetchForViewAllModels(ViewAllActivity.this, viewAllModelList,
+                            () -> viewAllAdapters.notifyDataSetChanged());
                 });
             } catch (Exception e) {
                 runOnUiThread(() ->

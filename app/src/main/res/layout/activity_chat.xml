@@ -13,8 +13,9 @@
     <ImageView
         android:id="@+id/imageView4"
         android:layout_width="wrap_content"
-        android:layout_height="100dp"
-        android:src="@drawable/top_chats"
+        android:layout_height="70dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/up_chat"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"

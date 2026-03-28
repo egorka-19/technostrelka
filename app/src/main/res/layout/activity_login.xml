@@ -42,9 +42,11 @@
         app:layout_constraintStart_toStartOf="parent" />
 
     <LinearLayout
+        android:id="@+id/register_footer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
+        android:layout_marginBottom="24dp"
         android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -107,12 +109,33 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/email_Et" />
 
+    <com.google.android.material.checkbox.MaterialCheckBox
+        android:id="@+id/remember_me_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:checked="true"
+        android:fontFamily="@font/sfprodisplay1medium"
+        android:gravity="center_vertical"
+        android:minHeight="56dp"
+        android:paddingStart="2dp"
+        android:paddingTop="6dp"
+        android:paddingEnd="8dp"
+        android:paddingBottom="6dp"
+        android:text="@string/remember_me"
+        android:textColor="@color/black"
+        android:textSize="18sp"
+        app:buttonTint="@color/remember_me_checkbox_tint"
+        app:layout_constraintStart_toStartOf="@+id/email_Et"
+        app:layout_constraintTop_toBottomOf="@+id/password_Et"
+        app:useMaterialThemeColors="false" />
+
     <Button
         android:id="@+id/btnSign"
         android:layout_width="345dp"
         android:layout_height="50dp"
-        android:layout_marginTop="155dp"
-        android:layout_marginBottom="150dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="16dp"
         android:backgroundTint="@color/black"
         android:elevation="0dp"
         android:fontFamily="@font/sfprodisplay1medium"
@@ -121,11 +144,11 @@
         android:textAllCaps="false"
         android:textSize="16sp"
         app:cornerRadius="12dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/register_footer"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/email_Et" />
+        app:layout_constraintTop_toBottomOf="@+id/remember_me_checkbox" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 

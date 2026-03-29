@@ -1,6 +1,8 @@
 package com.example.main_screen;
 
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -17,7 +19,9 @@ import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.bumptech.glide.Glide;
+import com.example.main_screen.data.RouteFavoritePreferences;
 import com.example.main_screen.model.RouteModel;
+import com.example.main_screen.model.RouteModelKeys;
 import com.example.main_screen.utils.MediaUrlUtils;
 import com.google.android.material.button.MaterialButton;
 
@@ -42,6 +46,7 @@ public class RoutePreviewActivity extends AppCompatActivity {
 
         ImageView hero = findViewById(R.id.hero_image);
         ImageButton back = findViewById(R.id.back_button);
+        ImageButton favorite = findViewById(R.id.favorite_route_button);
         TextView title = findViewById(R.id.route_title);
         TextView place = findViewById(R.id.route_place);
         TextView description = findViewById(R.id.route_description);
@@ -63,6 +68,13 @@ public class RoutePreviewActivity extends AppCompatActivity {
 
         back.setOnClickListener(v -> finish());
 
+        final String routeKey = RouteModelKeys.stableKey(route);
+        applyFavoriteIcon(favorite, RouteFavoritePreferences.isFavorite(this, routeKey));
+        favorite.setOnClickListener(v -> {
+            RouteFavoritePreferences.toggle(this, routeKey);
+            applyFavoriteIcon(favorite, RouteFavoritePreferences.isFavorite(this, routeKey));
+        });
+
         start.setOnClickListener(v -> {
             Intent next = new Intent(this, RouteItineraryActivity.class);
             next.putExtra(EXTRA_ROUTE, route);
@@ -74,6 +86,10 @@ public class RoutePreviewActivity extends AppCompatActivity {
             ViewGroup.MarginLayoutParams backLp = (ViewGroup.MarginLayoutParams) back.getLayoutParams();
             backLp.topMargin = sys.top + dp(4);
             back.setLayoutParams(backLp);
+
+            ViewGroup.MarginLayoutParams favLp = (ViewGroup.MarginLayoutParams) favorite.getLayoutParams();
+            favLp.topMargin = sys.top + dp(4);
+            favorite.setLayoutParams(favLp);
 
             ViewGroup.MarginLayoutParams btnLp = (ViewGroup.MarginLayoutParams) start.getLayoutParams();
             btnLp.bottomMargin = sys.bottom + dp(12);
@@ -119,5 +135,13 @@ public class RoutePreviewActivity extends AppCompatActivity {
 
     private int dp(int v) {
         return Math.round(v * getResources().getDisplayMetrics().density);
+    }
+
+    private static void applyFavoriteIcon(ImageButton btn, boolean favorite) {
+        if (favorite) {
+            btn.setColorFilter(Color.parseColor("#FF0033"), PorterDuff.Mode.SRC_IN);
+        } else {
+            btn.setColorFilter(0xFFFFFFFF, PorterDuff.Mode.SRC_IN);
+        }
     }
 }

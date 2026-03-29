@@ -47,6 +47,23 @@
     <string name="cd_back">Назад</string>
     <string name="route_start">Начать</string>
     <string name="route_itinerary_placeholder">Точки маршрута и аудиогид появятся здесь позже.</string>
+    <string name="route_gift_get">Получить подарок</string>
+    <string name="route_gift_used">Вы уже использовали промокод для этой точки.</string>
+    <string name="route_gift_title">Ваш промокод</string>
+    <string name="route_gift_message">Назовите в заведении фразу ниже. Промокод одноразовый для этой точки.</string>
+    <string name="route_gift_ok">Понятно</string>
+    <string name="route_audio_listen">Слушать</string>
+    <string name="route_audio_pause">Пауза</string>
+    <string name="cd_expand_stop">Развернуть или свернуть точку</string>
+    <string name="cd_stop_photo">Фото точки маршрута</string>
+    <string name="cd_route_audio">Аудиогид</string>
     <string name="remember_me">Запомнить меня</string>
+
+    <string name="profile_my_routes">Мои маршруты</string>
+    <string name="profile_my_events">Мои мероприятия</string>
+    <string name="profile_routes_empty">Нет избранных маршрутов. Добавьте их на экране превью маршрута.</string>
+    <string name="profile_events_empty">Нет избранных мероприятий.</string>
+    <string name="profile_events_login">Войдите, чтобы видеть избранные мероприятия.</string>
+    <string name="cd_favorite_route">Добавить маршрут в избранное</string>
 
 </resources>

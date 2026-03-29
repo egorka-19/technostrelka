@@ -147,6 +147,10 @@
             android:name=".RoutesFilterActivity"
             android:exported="false" />
         <activity
+            android:name=".profile.ProfileFavoritesListActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MaterialComponents.Light.NoActionBar" />
+        <activity
             android:name=".RoutePreviewActivity"
             android:exported="false"
             android:theme="@style/Theme.MaterialComponents.Light.NoActionBar" />

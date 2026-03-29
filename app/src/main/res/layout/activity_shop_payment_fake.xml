@@ -45,13 +45,15 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:hint="Номер карты"
-            app:hintTextColor="#CCCCCC">
+            app:hintTextColor="#CCCCCC"
+            app:placeholderText="1111 1111 1111 1111"
+            app:placeholderTextColor="#66FFFFFF">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/input_card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="number"
+                android:inputType="text|textNoSuggestions"
                 android:maxLength="19"
                 android:textColor="@color/white" />
         </com.google.android.material.textfield.TextInputLayout>
@@ -67,14 +69,17 @@
                 android:layout_marginTop="12dp"
                 android:layout_marginEnd="8dp"
                 android:layout_weight="1"
-                android:hint="ММ/ГГ"
-                app:hintTextColor="#CCCCCC">
+                android:hint="Срок (ММ/ГГ)"
+                app:hintTextColor="#CCCCCC"
+                app:placeholderText="12/26"
+                app:placeholderTextColor="#66FFFFFF">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/input_expiry"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="text"
+                    android:inputType="text|textNoSuggestions"
+                    android:maxLength="5"
                     android:textColor="@color/white" />
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -84,14 +89,16 @@
                 android:layout_marginTop="12dp"
                 android:layout_weight="1"
                 android:hint="CVC"
-                app:hintTextColor="#CCCCCC">
+                app:hintTextColor="#CCCCCC"
+                app:placeholderText="***"
+                app:placeholderTextColor="#66FFFFFF">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/input_cvc"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="numberPassword"
-                    android:maxLength="4"
+                    android:inputType="number"
+                    android:maxLength="3"
                     android:textColor="@color/white" />
             </com.google.android.material.textfield.TextInputLayout>
         </LinearLayout>

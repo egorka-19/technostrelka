@@ -18,7 +18,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fontFamily="@font/sfprodisplay1semibold"
-            android:text="Оформление (демо)"
+            android:text="Оформление заказа"
             android:textColor="@color/black"
             android:textSize="22sp"
             android:textStyle="bold" />
@@ -27,35 +27,57 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:text="Укажите адрес и удобное время доставки. Оплата дальше — учебная, без списания средств."
+            android:text="Укажите адрес и удобное время доставки."
             android:textColor="@color/dark_gray"
             android:textSize="14sp" />
 
         <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:hint="Адрес доставки">
+            android:hint="Адрес доставки"
+            app:boxCornerRadiusBottomEnd="14dp"
+            app:boxCornerRadiusBottomStart="14dp"
+            app:boxCornerRadiusTopEnd="14dp"
+            app:boxCornerRadiusTopStart="14dp"
+            app:boxStrokeColor="@color/shop_checkout_til_stroke"
+            app:boxStrokeWidth="1.5dp"
+            app:boxStrokeWidthFocused="2dp"
+            app:hintTextColor="@color/shop_checkout_til_hint">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/input_address"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textPostalAddress|textMultiLine"
-                android:minLines="2" />
+                android:minLines="2"
+                android:textColor="@color/black"
+                android:textCursorDrawable="@drawable/shop_checkout_cursor" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:hint="Время доставки (например, 10:00–14:00)">
+            android:hint="Время доставки (например, 10:00–14:00)"
+            app:boxCornerRadiusBottomEnd="14dp"
+            app:boxCornerRadiusBottomStart="14dp"
+            app:boxCornerRadiusTopEnd="14dp"
+            app:boxCornerRadiusTopStart="14dp"
+            app:boxStrokeColor="@color/shop_checkout_til_stroke"
+            app:boxStrokeWidth="1.5dp"
+            app:boxStrokeWidthFocused="2dp"
+            app:hintTextColor="@color/shop_checkout_til_hint">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/input_delivery_time"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="text" />
+                android:inputType="text"
+                android:textColor="@color/black"
+                android:textCursorDrawable="@drawable/shop_checkout_cursor" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <TextView

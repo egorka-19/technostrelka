@@ -5,6 +5,7 @@ import android.text.TextUtils;
 
 import com.example.main_screen.model.RouteModel;
 import com.example.main_screen.model.RouteStop;
+import com.example.main_screen.utils.StopPartnerDetector;
 import com.google.gson.Gson;
 
 import java.io.BufferedReader;
@@ -80,12 +81,24 @@ public final class VisitUdmurtiaRoutesAssetLoader {
 
         if (dto.stops != null && !dto.stops.isEmpty()) {
             List<RouteStop> stops = new ArrayList<>();
-            for (VisitUdmurtiaStopItemDto s : dto.stops) {
+            String routeId = nz(dto.id);
+            for (int i = 0; i < dto.stops.size(); i++) {
+                VisitUdmurtiaStopItemDto s = dto.stops.get(i);
                 if (s == null) {
                     continue;
                 }
                 List<String> imgs = s.imageUrls != null ? new ArrayList<>(s.imageUrls) : new ArrayList<>();
-                stops.add(new RouteStop(nz(s.title), nz(s.address), nz(s.text), imgs));
+                RouteStop rs = new RouteStop(nz(s.title), nz(s.address), nz(s.text), imgs);
+                String sid = nz(s.id);
+                if (sid.isEmpty()) {
+                    sid = (routeId.isEmpty() ? "route" : routeId) + "_stop_" + i;
+                }
+                rs.setStopId(sid);
+                boolean partner = s.partnerPoi != null
+                        ? s.partnerPoi
+                        : StopPartnerDetector.isPartnerPoi(nz(s.title));
+                rs.setPartnerPoi(partner);
+                stops.add(rs);
             }
             m.setStops(stops);
         }

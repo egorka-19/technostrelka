@@ -85,8 +85,10 @@
 
                 <!-- Мои маршруты -->
                 <LinearLayout
+                    android:id="@+id/my_routes_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
                     android:padding="14dp">
@@ -94,6 +96,7 @@
                     <ImageView
                         android:layout_width="24dp"
                         android:layout_height="24dp"
+                        android:contentDescription="@null"
                         android:src="@drawable/ic_route"
                         android:tint="#666666" />
 
@@ -102,16 +105,16 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="16dp"
                         android:layout_weight="1"
-                        android:text="Мои маршруты"
+                        android:text="@string/profile_my_routes"
                         android:textColor="@color/black"
                         android:textSize="16sp" />
 
                     <ImageView
                         android:layout_width="24dp"
                         android:layout_height="24dp"
+                        android:contentDescription="@null"
                         android:src="@drawable/ic_arrow_right"
                         android:tint="#666666" />
-
                 </LinearLayout>
 
                 <View
@@ -119,10 +122,12 @@
                     android:layout_height="1dp"
                     android:background="#EEEEEE" />
 
-                <!-- Мои события -->
+                <!-- Мои мероприятия -->
                 <LinearLayout
+                    android:id="@+id/my_events_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
                     android:padding="14dp">
@@ -130,6 +135,7 @@
                     <ImageView
                         android:layout_width="24dp"
                         android:layout_height="24dp"
+                        android:contentDescription="@null"
                         android:src="@drawable/ic_event"
                         android:tint="#666666" />
 
@@ -138,16 +144,16 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="16dp"
                         android:layout_weight="1"
-                        android:text="Мои события"
+                        android:text="@string/profile_my_events"
                         android:textColor="@color/black"
                         android:textSize="16sp" />
 
                     <ImageView
                         android:layout_width="24dp"
                         android:layout_height="24dp"
+                        android:contentDescription="@null"
                         android:src="@drawable/ic_arrow_right"
                         android:tint="#666666" />
-
                 </LinearLayout>
 
                 <View

@@ -29,6 +29,7 @@ import com.example.main_screen.api.ApiClient;
 import com.example.main_screen.api.TokenStore;
 import com.example.main_screen.api.dto.UserMeDto;
 import com.example.main_screen.databinding.FragmentProfileBinding;
+import com.example.main_screen.profile.ProfileFavoritesListActivity;
 import com.example.main_screen.shop.ShopActivity;
 import com.example.main_screen.service.ScoreService;
 import com.example.main_screen.utils.MediaUrlUtils;
@@ -76,6 +77,17 @@ public class ProfileFragment extends Fragment {
             Intent i = new Intent(getActivity(), ShopActivity.class);
             CharSequence em = binding.profileEmail.getText();
             i.putExtra(ShopActivity.EXTRA_USER_EMAIL, em != null ? em.toString() : "");
+            startActivity(i);
+        });
+
+        binding.myRoutesLayout.setOnClickListener(v -> {
+            Intent i = new Intent(requireContext(), ProfileFavoritesListActivity.class);
+            i.putExtra(ProfileFavoritesListActivity.EXTRA_LIST_TYPE, ProfileFavoritesListActivity.TYPE_ROUTES);
+            startActivity(i);
+        });
+        binding.myEventsLayout.setOnClickListener(v -> {
+            Intent i = new Intent(requireContext(), ProfileFavoritesListActivity.class);
+            i.putExtra(ProfileFavoritesListActivity.EXTRA_LIST_TYPE, ProfileFavoritesListActivity.TYPE_EVENTS);
             startActivity(i);
         });
 

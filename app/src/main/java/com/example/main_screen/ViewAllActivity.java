@@ -16,6 +16,7 @@ import com.example.main_screen.api.dto.EventItemDto;
 import com.example.main_screen.model.ViewAllModel;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executors;
 
@@ -59,6 +60,9 @@ public class ViewAllActivity extends AppCompatActivity {
                     if (resp.isSuccessful() && resp.body() != null) {
                         for (EventItemDto e : resp.body()) {
                             viewAllModelList.add(EventMapper.toViewAll(e));
+                        }
+                        if (viewAllModelList.size() > 1) {
+                            Collections.shuffle(viewAllModelList);
                         }
                     } else {
                         Toast.makeText(ViewAllActivity.this, "Не удалось загрузить события", Toast.LENGTH_SHORT).show();

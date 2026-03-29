@@ -59,6 +59,7 @@ import com.example.main_screen.adapter.HomeAdapter;
 import com.example.main_screen.adapter.PopularAdapters;
 import com.example.main_screen.adapter.ViewAllAdapters;
 import com.example.main_screen.databinding.FragmentMainBinding;
+import com.example.main_screen.utils.EventSoonUtils;
 import com.example.main_screen.utils.MediaUrlUtils;
 import com.makeramen.roundedimageview.RoundedImageView;
 
@@ -77,6 +78,9 @@ import retrofit2.Response;
 public class ThemainscreenFragment extends Fragment {
     private static final int PAGE_SIZE = 100;
     private static final String TAG_HOME_CAT = "HomeCategories";
+
+    /** Локальная категория «Скоро» (не уходит в {@code GET /events?type=}). */
+    public static final String CATEGORY_SOON = "__app_soon__";
 
     ProgressBar progressBar;
     ScrollView scrollView;
@@ -127,7 +131,7 @@ public class ThemainscreenFragment extends Fragment {
         // Устанавливаем слушатель для обновления избранного
         popularAdapters.setOnFavoriteChangeListener(() -> {
             // Если выбрана категория "Избранное", обновляем список
-            if (homeAdapter != null && homeAdapter.getSelectedPosition() == 1) {
+            if (homeAdapter != null && "favorite".equals(homeAdapter.getSelectedCategoryType())) {
                 loadFavoriteEvents();
             }
         });
@@ -144,8 +148,8 @@ public class ThemainscreenFragment extends Fragment {
         
         // Добавляем категорию "Все" первой
         categoryList.add(new HomeCategory("Все", "all"));
-        // Добавляем категорию "Избранное"
         categoryList.add(new HomeCategory("Избранное", "favorite"));
+        categoryList.add(new HomeCategory("Скоро", CATEGORY_SOON));
         
         homeAdapter = new HomeAdapter(getActivity(), categoryList, this);
         homeCatRec.setAdapter(homeAdapter);
@@ -429,6 +433,7 @@ public class ThemainscreenFragment extends Fragment {
                         for (EventItemDto e : resp.body()) {
                             popularModelList.add(EventMapper.toPopular(e));
                         }
+                        shuffleEventsList(popularModelList);
                         popularAdapters.notifyDataSetChanged();
                         mergeFavoriteStatusIntoPopularList();
                         ReviewRatingPrefetch.prefetchForPopularModels(requireContext(), popularModelList,
@@ -455,8 +460,67 @@ public class ThemainscreenFragment extends Fragment {
         });
     }
 
+    /** Порядок в ленте — случайный, не как в ответе БД. */
+    private static void shuffleEventsList(List<PopularModel> list) {
+        if (list != null && list.size() > 1) {
+            Collections.shuffle(list);
+        }
+    }
+
+    private static void shuffleViewAllList(List<ViewAllModel> list) {
+        if (list != null && list.size() > 1) {
+            Collections.shuffle(list);
+        }
+    }
+
     public void showAllItems() {
         loadAllEvents();
+    }
+
+    /**
+     * Предстоящие события: только с датой окончания не раньше сегодня, порядок по ближайшему дню (локально).
+     */
+    private void loadSoonEvents() {
+        progressBar.setVisibility(VISIBLE);
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                Response<List<EventItemDto>> resp = ApiClient.get(requireContext())
+                        .listEvents(null, PAGE_SIZE, 0)
+                        .execute();
+                if (getActivity() == null) {
+                    return;
+                }
+                getActivity().runOnUiThread(() -> {
+                    if (resp.isSuccessful() && resp.body() != null) {
+                        List<EventItemDto> upcoming = EventSoonUtils.filterUpcomingAndSort(resp.body());
+                        popularModelList.clear();
+                        for (EventItemDto e : upcoming) {
+                            popularModelList.add(EventMapper.toPopular(e));
+                        }
+                        popularAdapters.notifyDataSetChanged();
+                        mergeFavoriteStatusIntoPopularList();
+                        ReviewRatingPrefetch.prefetchForPopularModels(requireContext(), popularModelList,
+                                () -> {
+                                    if (popularAdapters != null) {
+                                        popularAdapters.notifyDataSetChanged();
+                                    }
+                                });
+                    } else {
+                        Toast.makeText(getActivity(), "Не удалось загрузить события", Toast.LENGTH_LONG).show();
+                    }
+                    progressBar.setVisibility(View.GONE);
+                    updateEmptyState();
+                });
+            } catch (Exception e) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        Toast.makeText(getActivity(), e.getMessage(), Toast.LENGTH_LONG).show();
+                        progressBar.setVisibility(View.GONE);
+                        updateEmptyState();
+                    });
+                }
+            }
+        });
     }
 
     /**
@@ -473,6 +537,11 @@ public class ThemainscreenFragment extends Fragment {
             return;
         }
 
+        if (CATEGORY_SOON.equals(categoryType)) {
+            loadSoonEvents();
+            return;
+        }
+
         progressBar.setVisibility(VISIBLE);
         Executors.newSingleThreadExecutor().execute(() -> {
             try {
@@ -486,6 +555,7 @@ public class ThemainscreenFragment extends Fragment {
                         for (EventItemDto e : resp.body()) {
                             popularModelList.add(EventMapper.toPopular(e));
                         }
+                        shuffleEventsList(popularModelList);
                         popularAdapters.notifyDataSetChanged();
                         mergeFavoriteStatusIntoPopularList();
                         ReviewRatingPrefetch.prefetchForPopularModels(requireContext(), popularModelList,
@@ -608,6 +678,7 @@ public class ThemainscreenFragment extends Fragment {
                         for (EventItemDto e : resp.body()) {
                             viewAllModelList.add(EventMapper.toViewAll(e));
                         }
+                        shuffleViewAllList(viewAllModelList);
                         mergeFavoriteStatusIntoViewAllList();
                         ReviewRatingPrefetch.prefetchForViewAllModels(requireContext(), viewAllModelList,
                                 () -> {

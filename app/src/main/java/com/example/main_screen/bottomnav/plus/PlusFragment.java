@@ -278,6 +278,9 @@ public class PlusFragment extends Fragment {
             for (EventItemDto e : resp.body()) {
                 apiRoutes.add(EventMapper.eventToRoute(e));
             }
+            if (apiRoutes.size() > 1) {
+                Collections.shuffle(apiRoutes);
+            }
             addRoutesToCategories(apiRoutes);
         } else if (allRoutes.isEmpty()) {
             loadTestRoutesFallback();

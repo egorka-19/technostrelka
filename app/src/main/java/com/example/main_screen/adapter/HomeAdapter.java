@@ -33,6 +33,15 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.ViewHolder> {
         return selectedPosition;
     }
 
+    /** Тип выбранной категории ({@code all}, {@code favorite}, {@link ThemainscreenFragment#CATEGORY_SOON} и т.д.). */
+    public String getSelectedCategoryType() {
+        if (selectedPosition < 0 || selectedPosition >= categoryList.size()) {
+            return "all";
+        }
+        String t = categoryList.get(selectedPosition).getType();
+        return t != null ? t : "all";
+    }
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -68,16 +77,14 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.ViewHolder> {
                 notifyItemChanged(previousSelected);
                 notifyItemChanged(selectedPosition);
                 
-                // Filter items based on selected category
-                if (selectedPosition == 0) {
-                    // Show all items
+                String type = categoryList.get(selectedPosition).getType();
+                type = type != null ? type : "all";
+                if ("all".equals(type)) {
                     fragment.showAllItems();
-                } else if (selectedPosition == 1) {
-                    // Show favorite items
+                } else if ("favorite".equals(type)) {
                     fragment.filterItemsByCategory("favorite");
                 } else {
-                    // Filter by selected category
-                    fragment.filterItemsByCategory(categoryList.get(selectedPosition).getType());
+                    fragment.filterItemsByCategory(type);
                 }
             }
         });

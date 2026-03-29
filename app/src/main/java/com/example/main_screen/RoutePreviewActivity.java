@@ -51,8 +51,8 @@ public class RoutePreviewActivity extends AppCompatActivity {
         title.setText(nonEmpty(route.getName(), ""));
         String city = nonEmpty(route.getPlace(), "Ижевск");
         place.setText(city);
-        String desc = nonEmpty(route.getDescription(), getString(R.string.route_itinerary_placeholder));
-        description.setText(desc);
+        String full = nonEmpty(route.getDescription(), getString(R.string.route_itinerary_placeholder));
+        description.setText(shortenDescription(full));
 
         String img = MediaUrlUtils.resolveForApiClient(route.getImageUrl());
         if (!TextUtils.isEmpty(img)) {
@@ -97,6 +97,24 @@ public class RoutePreviewActivity extends AppCompatActivity {
             return fallback;
         }
         return s;
+    }
+
+    /** Укороченный анонс на превью (полный текст — на экране маршрута). */
+    private static String shortenDescription(String text) {
+        if (text == null) {
+            return "";
+        }
+        String t = text.trim();
+        final int max = 360;
+        if (t.length() <= max) {
+            return t;
+        }
+        int cut = max;
+        int lastSpace = t.lastIndexOf(' ', max);
+        if (lastSpace > max / 2) {
+            cut = lastSpace;
+        }
+        return t.substring(0, cut).trim() + "…";
     }
 
     private int dp(int v) {

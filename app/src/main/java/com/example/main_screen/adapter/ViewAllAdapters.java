@@ -23,6 +23,7 @@ import com.example.main_screen.api.TokenStore;
 import com.example.main_screen.model.ViewAllModel;
 import com.example.main_screen.R;
 import com.example.main_screen.product_card;
+import com.example.main_screen.utils.MediaUrlUtils;
 
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -46,10 +47,10 @@ public class ViewAllAdapters extends RecyclerView.Adapter<ViewAllAdapters.ViewHo
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         ViewAllModel item = list.get(position);
 
-        // Загрузка изображения
-        if (item.getImg_url() != null && !item.getImg_url().isEmpty()) {
+        String imageUrl = MediaUrlUtils.resolveForApiClient(item.getImg_url());
+        if (imageUrl != null && !imageUrl.isEmpty()) {
             Glide.with(context)
-                    .load(item.getImg_url())
+                    .load(imageUrl)
                     .error(R.drawable.izo)
                     .into(holder.eventImage);
         } else {

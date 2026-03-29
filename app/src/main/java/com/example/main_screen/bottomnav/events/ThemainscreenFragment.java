@@ -27,6 +27,8 @@ import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.Toast;
 
+import android.util.Log;
+
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
@@ -45,6 +47,7 @@ import com.example.main_screen.api.EventMapper;
 import com.example.main_screen.api.ReviewRatingPrefetch;
 import com.example.main_screen.api.TokenStore;
 import com.example.main_screen.api.dto.EventCategoryDto;
+import com.example.main_screen.api.dto.HomeCategoriesJsonParser;
 import com.example.main_screen.api.dto.EventItemDto;
 import com.example.main_screen.api.dto.FavoriteStatusResponseDto;
 import com.example.main_screen.api.dto.UserMeDto;
@@ -61,14 +64,19 @@ import com.makeramen.roundedimageview.RoundedImageView;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
+
+import com.google.gson.JsonElement;
 
 import retrofit2.Response;
 
 public class ThemainscreenFragment extends Fragment {
     private static final int PAGE_SIZE = 100;
+    private static final String TAG_HOME_CAT = "HomeCategories";
 
     ProgressBar progressBar;
     ScrollView scrollView;
@@ -209,19 +217,58 @@ public class ThemainscreenFragment extends Fragment {
     private void loadEventCategoriesFromApi() {
         Executors.newSingleThreadExecutor().execute(() -> {
             try {
-                Response<List<EventCategoryDto>> resp = ApiClient.get(requireContext()).getHomeCategories().execute();
-                if (resp.isSuccessful() && resp.body() != null && getActivity() != null) {
-                    getActivity().runOnUiThread(() -> {
-                        for (EventCategoryDto c : resp.body()) {
-                            HomeCategory hc = new HomeCategory();
-                            hc.setId(c.id != null ? c.id : "");
-                            hc.setName(c.name != null ? c.name : "");
-                            hc.setType(c.type != null ? c.type : "");
-                            categoryList.add(hc);
-                        }
-                        homeAdapter.notifyDataSetChanged();
-                    });
+                if (!isAdded()) {
+                    return;
                 }
+                Response<JsonElement> resp = ApiClient.get(requireContext()).getHomeCategories().execute();
+                if (!isAdded() || getActivity() == null) {
+                    return;
+                }
+                if (!resp.isSuccessful()) {
+                    final int code = resp.code();
+                    getActivity().runOnUiThread(() -> {
+                        String msg = code == 401
+                                ? "Войдите в аккаунт, чтобы загрузить категории"
+                                : "Не удалось загрузить категории (код " + code + ")";
+                        Toast.makeText(getActivity(), msg, Toast.LENGTH_LONG).show();
+                    });
+                    return;
+                }
+                JsonElement body = resp.body();
+                List<EventCategoryDto> parsed = HomeCategoriesJsonParser.parse(body);
+                List<EventCategoryDto> sorted = new ArrayList<>(parsed);
+                Collections.sort(sorted, Comparator.comparingInt(c ->
+                        c.sortOrder != null ? c.sortOrder : 0));
+                getActivity().runOnUiThread(() -> {
+                    if (!isAdded() || homeAdapter == null) {
+                        return;
+                    }
+                    for (EventCategoryDto c : sorted) {
+                        String typeForEvents = trimOrNull(c.type);
+                        if (typeForEvents == null) {
+                            typeForEvents = trimOrNull(c.name);
+                        }
+                        if (typeForEvents == null) {
+                            continue;
+                        }
+                        String display = firstNonBlank(c.name, c.title, typeForEvents);
+                        HomeCategory hc = new HomeCategory();
+                        hc.setId(trimOrEmpty(c.id));
+                        hc.setName(display);
+                        hc.setType(typeForEvents);
+                        categoryList.add(hc);
+                    }
+                    homeAdapter.notifyDataSetChanged();
+                    if (parsed.isEmpty() && body != null && !body.isJsonNull()) {
+                        boolean emptyArray = body.isJsonArray() && body.getAsJsonArray().size() == 0;
+                        if (!emptyArray) {
+                            Toast.makeText(getActivity(),
+                                    "Категории не распознаны. Откройте Logcat по тегу " + TAG_HOME_CAT,
+                                    Toast.LENGTH_LONG).show();
+                            Log.w(TAG_HOME_CAT, "home-categories body: " + body);
+                        }
+                    }
+                });
             } catch (Exception e) {
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() ->
@@ -229,6 +276,31 @@ public class ThemainscreenFragment extends Fragment {
                 }
             }
         });
+    }
+
+    private static String trimOrNull(String s) {
+        if (s == null) {
+            return null;
+        }
+        String t = s.trim();
+        return t.isEmpty() ? null : t;
+    }
+
+    private static String trimOrEmpty(String s) {
+        return s != null ? s.trim() : "";
+    }
+
+    /** Первое непустое значение (для подписи категории на главном экране). */
+    private static String firstNonBlank(String a, String b, String c) {
+        String x = trimOrNull(a);
+        if (x != null) {
+            return x;
+        }
+        x = trimOrNull(b);
+        if (x != null) {
+            return x;
+        }
+        return c != null ? c : "";
     }
 
     /**

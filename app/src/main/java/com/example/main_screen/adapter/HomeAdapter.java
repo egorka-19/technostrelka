@@ -41,7 +41,15 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        holder.name.setText(categoryList.get(position).getName());
+        HomeCategory cat = categoryList.get(position);
+        String label = cat.getName();
+        if (label == null || label.trim().isEmpty()) {
+            label = cat.getType();
+        }
+        if (label == null) {
+            label = "";
+        }
+        holder.name.setText(label);
         
         // Set background and text color based on selection
         if (position == selectedPosition) {

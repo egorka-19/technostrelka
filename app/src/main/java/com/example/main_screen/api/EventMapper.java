@@ -4,6 +4,7 @@ import com.example.main_screen.api.dto.EventItemDto;
 import com.example.main_screen.model.PopularModel;
 import com.example.main_screen.model.RouteModel;
 import com.example.main_screen.model.ViewAllModel;
+import com.example.main_screen.utils.MediaUrlUtils;
 
 import java.util.List;
 
@@ -35,7 +36,7 @@ public final class EventMapper {
         }
         p.setServerId(e.id != null ? e.id : "");
         p.setName(e.name != null ? e.name : "");
-        p.setImg_url(pickCoverImage(e));
+        p.setImg_url(MediaUrlUtils.resolveForApiClient(pickCoverImage(e)));
         p.setDescription(e.description);
         p.setAge(e.age);
         String dateCap = e.dateCaption != null ? e.dateCaption : "";
@@ -86,7 +87,7 @@ public final class EventMapper {
         }
         m.setId(e.id != null ? e.id : "");
         m.setName(e.name);
-        m.setImageUrl(pickCoverImage(e));
+        m.setImageUrl(MediaUrlUtils.resolveForApiClient(pickCoverImage(e)));
         m.setDescription(e.description != null ? e.description : "");
         m.setCategory(e.type != null && !e.type.isEmpty() ? e.type : "События");
         m.setGoal("Афиша");

@@ -38,6 +38,7 @@ import com.example.main_screen.api.TokenStore;
 import com.example.main_screen.model.PopularModel;
 import com.example.main_screen.R;
 import com.example.main_screen.product_card;
+import com.example.main_screen.utils.MediaUrlUtils;
 
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -83,14 +84,17 @@ public class PopularAdapters extends RecyclerView.Adapter<PopularAdapters.ViewHo
         if (currentPosition != RecyclerView.NO_POSITION) {
             PopularModel currentItem = popularModelList.get(currentPosition);
 
-            // Загрузка изображения через Glide
-            Glide.with(context)
-                    .load(currentItem.getImg_url())
-                    .error(R.drawable.izo)
-                    .listener(new RequestListener<Drawable>() {
+            String imageUrl = MediaUrlUtils.resolveForApiClient(currentItem.getImg_url());
+            if (TextUtils.isEmpty(imageUrl)) {
+                holder.eventImage.setImageResource(R.drawable.izo);
+            } else {
+                Glide.with(context)
+                        .load(imageUrl)
+                        .error(R.drawable.izo)
+                        .listener(new RequestListener<Drawable>() {
                         @Override
                         public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
-                            Log.e("GlideError", "Error loading image", e);
+                            Log.e("GlideError", "Error loading image url=" + model, e);
                             return false;
                         }
 
@@ -100,6 +104,7 @@ public class PopularAdapters extends RecyclerView.Adapter<PopularAdapters.ViewHo
                         }
                     })
                     .into(holder.eventImage);
+            }
 
             // Название события
             holder.eventName.setText(currentItem.getName());

@@ -29,6 +29,7 @@ import com.example.main_screen.api.ApiClient;
 import com.example.main_screen.api.TokenStore;
 import com.example.main_screen.api.dto.UserMeDto;
 import com.example.main_screen.databinding.FragmentProfileBinding;
+import com.example.main_screen.shop.ShopActivity;
 import com.example.main_screen.service.ScoreService;
 import com.example.main_screen.utils.MediaUrlUtils;
 
@@ -70,6 +71,13 @@ public class ProfileFragment extends Fragment {
 
         binding.chatLayout.setOnClickListener(v ->
                 startActivity(new Intent(getActivity(), ProfileChatActivity.class)));
+
+        binding.shopLayout.setOnClickListener(v -> {
+            Intent i = new Intent(getActivity(), ShopActivity.class);
+            CharSequence em = binding.profileEmail.getText();
+            i.putExtra(ShopActivity.EXTRA_USER_EMAIL, em != null ? em.toString() : "");
+            startActivity(i);
+        });
 
         return binding.getRoot();
     }

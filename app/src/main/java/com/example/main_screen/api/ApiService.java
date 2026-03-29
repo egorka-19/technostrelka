@@ -18,6 +18,8 @@ import com.example.main_screen.api.dto.UserMeDto;
 
 import java.util.List;
 
+import com.google.gson.JsonElement;
+
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
@@ -47,8 +49,12 @@ public interface ApiService {
     @GET("users/me")
     Call<UserMeDto> getMe();
 
+    /**
+     * Тело ответа парсится вручную ({@link com.example.main_screen.api.dto.HomeCategoriesJsonParser}),
+     * т.к. бекенд может отдавать массив или объект с массивом и разные имена полей.
+     */
     @GET("home-categories")
-    Call<List<EventCategoryDto>> getHomeCategories();
+    Call<JsonElement> getHomeCategories();
 
     @GET("events")
     Call<List<EventItemDto>> listEvents(

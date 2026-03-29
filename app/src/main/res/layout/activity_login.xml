@@ -5,7 +5,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/fon"
-    android:backgroundTint="#FFFFFF"
     tools:context=".LoginActivity">
 
     <ImageView
@@ -25,8 +24,7 @@
         android:layout_height="wrap_content"
         android:fontFamily="@font/sfprodisplay1semibold"
         android:text="Вход"
-
-        android:textColor="@color/black"
+        android:textColor="@color/text_primary"
         android:textSize="28sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -58,7 +56,7 @@
             android:layout_height="wrap_content"
             android:fontFamily="@font/sfprodisplay1medium"
             android:text="Еще нет аккаунта?"
-            android:textColor="@color/black"
+            android:textColor="@color/text_primary"
             android:textSize="16sp">
 
         </TextView>
@@ -86,6 +84,8 @@
         android:background="@drawable/edittext_rounded_corners"
         android:ems="10"
         android:fontFamily="@font/rostelecombasis_medium"
+        android:textColor="@color/text_primary"
+        android:textColorHint="@color/text_secondary"
         android:hint="Почта"
         android:inputType="textEmailAddress"
         android:paddingStart="18dp"
@@ -101,6 +101,8 @@
         android:layout_marginTop="16dp"
         android:background="@drawable/edittext_rounded_corners"
         android:ems="10"
+        android:textColor="@color/text_primary"
+        android:textColorHint="@color/text_secondary"
         android:hint="Пароль"
         android:inputType="textPassword"
         android:paddingStart="18dp"
@@ -123,7 +125,7 @@
         android:paddingEnd="8dp"
         android:paddingBottom="6dp"
         android:text="@string/remember_me"
-        android:textColor="@color/black"
+        android:textColor="@color/text_primary"
         android:textSize="18sp"
         app:buttonTint="@color/remember_me_checkbox_tint"
         app:layout_constraintStart_toStartOf="@+id/email_Et"
@@ -136,12 +138,13 @@
         android:layout_height="50dp"
         android:layout_marginTop="20dp"
         android:layout_marginBottom="16dp"
-        android:backgroundTint="@color/black"
+        android:backgroundTint="@color/login_button_bg"
         android:elevation="0dp"
         android:fontFamily="@font/sfprodisplay1medium"
         android:stateListAnimator="@null"
         android:text="Войти"
         android:textAllCaps="false"
+        android:textColor="@android:color/white"
         android:textSize="16sp"
         app:cornerRadius="12dp"
         app:layout_constraintBottom_toTopOf="@+id/register_footer"

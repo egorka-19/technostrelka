@@ -33,7 +33,7 @@
         android:paddingEnd="8dp"
         android:paddingBottom="8dp"
         android:text="Course Description"
-        android:textColor="@color/gray"
+        android:textColor="@color/text_secondary"
         android:textSize="14sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/text_course_title" />

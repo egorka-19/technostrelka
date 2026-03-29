@@ -10,7 +10,7 @@
     android:layout_marginBottom="12dp"
     app:cardCornerRadius="20dp"
     app:cardElevation="4dp"
-    app:cardBackgroundColor="@color/white">
+    app:cardBackgroundColor="@color/surface_card">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -75,7 +75,7 @@
                     android:fontFamily="@font/sfprodisplay1bold"
                     android:maxLines="1"
                     android:text="Название события"
-                    android:textColor="@color/black"
+                    android:textColor="@color/text_primary"
                     android:textSize="21sp"
                     android:textStyle="bold" />
 
@@ -95,7 +95,7 @@
                     android:layout_marginStart="8dp"
                     android:fontFamily="@font/sfprodisplay1medium"
                     android:text="5.0"
-                    android:textColor="@color/black"
+                    android:textColor="@color/text_primary"
                     android:textSize="16sp" />
             </LinearLayout>
 

@@ -52,6 +52,7 @@
     <string name="route_gift_title">Ваш промокод</string>
     <string name="route_gift_message">Назовите в заведении фразу ниже. Промокод одноразовый для этой точки.</string>
     <string name="route_gift_ok">Понятно</string>
+    <string name="route_fully_explored_toast">Все точки маршрута открыты! Прогресс профиля +10%</string>
     <string name="route_audio_listen">Слушать</string>
     <string name="route_audio_pause">Пауза</string>
     <string name="cd_expand_stop">Развернуть или свернуть точку</string>
@@ -65,5 +66,6 @@
     <string name="profile_events_empty">Нет избранных мероприятий.</string>
     <string name="profile_events_login">Войдите, чтобы видеть избранные мероприятия.</string>
     <string name="cd_favorite_route">Добавить маршрут в избранное</string>
+    <string name="theme_dark_title">Тёмная тема</string>
 
 </resources>

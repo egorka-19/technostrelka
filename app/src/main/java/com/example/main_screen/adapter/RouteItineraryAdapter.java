@@ -38,6 +38,9 @@ public class RouteItineraryAdapter extends RecyclerView.Adapter<RouteItineraryAd
         void onPauseRequest();
 
         void onGiftClick(RouteStop stop);
+
+        /** Пользователь раскрыл карточку остановки (вкладку). */
+        void onStopExpanded(int adapterPosition, RouteStop stop);
     }
 
     private final List<RouteStop> stops;
@@ -227,7 +230,7 @@ public class RouteItineraryAdapter extends RecyclerView.Adapter<RouteItineraryAd
             }
 
             header.setOnClickListener(v -> {
-                int pos = getAdapterPosition();
+                int pos = getBindingAdapterPosition();
                 if (pos == RecyclerView.NO_POSITION) {
                     return;
                 }
@@ -235,6 +238,7 @@ public class RouteItineraryAdapter extends RecyclerView.Adapter<RouteItineraryAd
                     expandedPositions.remove(pos);
                 } else {
                     expandedPositions.add(pos);
+                    cb.onStopExpanded(pos, stops.get(pos));
                 }
                 notifyItemChanged(pos);
             });

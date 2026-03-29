@@ -4,15 +4,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Splash_screen"
-    android:background="@color/light"
-    >
+    android:background="@android:color/black"
+    tools:context=".Splash_screen">
 
     <ImageView
         android:id="@+id/imageView"
         android:layout_width="match_parent"
         android:layout_height="200dp"
         android:layout_gravity="center"
-        app:srcCompat="@drawable/logo_udm" />
+        app:srcCompat="@drawable/logo_dark" />
 
 </FrameLayout>

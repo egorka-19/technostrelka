@@ -21,10 +21,11 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.bumptech.glide.Glide;
 import com.example.main_screen.R;
+import com.example.main_screen.LoginActivity;
 import com.example.main_screen.ProfileChatActivity;
-import com.example.main_screen.Settings_Activity;
 import com.example.main_screen.api.ApiClient;
 import com.example.main_screen.api.TokenStore;
 import com.example.main_screen.api.dto.UserMeDto;
@@ -32,6 +33,7 @@ import com.example.main_screen.databinding.FragmentProfileBinding;
 import com.example.main_screen.profile.ProfileFavoritesListActivity;
 import com.example.main_screen.shop.ShopActivity;
 import com.example.main_screen.service.ScoreService;
+import com.example.main_screen.ui.ThemePreferences;
 import com.example.main_screen.utils.MediaUrlUtils;
 
 import java.io.ByteArrayOutputStream;
@@ -62,8 +64,22 @@ public class ProfileFragment extends Fragment {
             Toast.makeText(getContext(), "Дождитесь загрузки фото, не выходите из приложения!", Toast.LENGTH_SHORT).show();
         });
 
-        binding.logoutLayout.setOnClickListener(v ->
-                startActivity(new Intent(ProfileFragment.this.getActivity(), Settings_Activity.class)));
+        binding.logoutLayout.setOnClickListener(v -> {
+            TokenStore.get(requireContext()).clear();
+            ApiClient.reset();
+            Intent i = new Intent(requireActivity(), LoginActivity.class);
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(i);
+            requireActivity().finish();
+        });
+
+        SwitchMaterial themeSwitch = binding.themeDarkSwitch;
+        themeSwitch.setOnCheckedChangeListener(null);
+        themeSwitch.setChecked(ThemePreferences.isDarkMode(requireContext()));
+        themeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            ThemePreferences.setDarkMode(requireContext(), isChecked);
+            requireActivity().recreate();
+        });
 
         binding.supportLayout.setOnClickListener(v -> {
             Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/flachka"));

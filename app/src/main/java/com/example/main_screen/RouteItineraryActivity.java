@@ -22,8 +22,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.main_screen.adapter.RouteItineraryAdapter;
+import com.example.main_screen.data.RouteExplorePreferences;
 import com.example.main_screen.data.RoutePromoPreferences;
 import com.example.main_screen.model.RouteModel;
+import com.example.main_screen.model.RouteModelKeys;
+import com.example.main_screen.service.ScoreService;
 import com.example.main_screen.model.RouteStop;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
@@ -96,8 +99,16 @@ public class RouteItineraryActivity extends AppCompatActivity implements TextToS
                 public void onGiftClick(RouteStop stop) {
                     showGiftDialog(stop);
                 }
+
+                @Override
+                public void onStopExpanded(int adapterPosition, RouteStop stop) {
+                    applyRouteExploreProgress(route, adapterPosition);
+                }
             }, 0);
             list.setAdapter(adapter);
+            if (!stops.isEmpty()) {
+                applyRouteExploreProgress(route, 0);
+            }
             if (savedInstanceState != null) {
                 restoreTtsState(savedInstanceState);
             }
@@ -113,6 +124,17 @@ public class RouteItineraryActivity extends AppCompatActivity implements TextToS
         });
 
         tts = new TextToSpeech(this, this);
+    }
+
+    private void applyRouteExploreProgress(@Nullable RouteModel route, int stopIndex) {
+        if (route == null || stops.isEmpty() || stopIndex < 0 || stopIndex >= stops.size()) {
+            return;
+        }
+        String key = RouteModelKeys.stableKey(route);
+        if (RouteExplorePreferences.recordStopOpened(this, key, stopIndex, stops.size())) {
+            ScoreService.getInstance().incrementScore();
+            Toast.makeText(this, R.string.route_fully_explored_toast, Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override

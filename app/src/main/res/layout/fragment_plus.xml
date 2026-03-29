@@ -47,7 +47,8 @@
                 android:hint="Найти тур"
                 android:inputType="text"
                 android:maxLines="1"
-                android:textColorHint="@color/gray"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/hint_text"
                 android:textSize="16sp" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- В тёмной теме весь основной текст и «чёрный» для подписей — белые -->
+    <color name="black">#FFFFFFFF</color>
+    <color name="text_primary">#FFFFFFFF</color>
+    <color name="text_secondary">#FFFFFFFF</color>
+    <color name="surface_screen">#16161A</color>
+    <color name="surface_card">#252830</color>
+    <color name="divider_line">#383C46</color>
+    <color name="bottom_nav_surface">#FF252830</color>
+    <color name="bottom_nav_ripple">#1FFFFFFF</color>
+    <color name="login_button_bg">#FF0033</color>
+
+    <color name="fon">#141418</color>
+    <color name="grey">#141418</color>
+    <color name="light_gray">#2E323C</color>
+    <color name="light">#22252D</color>
+    <color name="gray">#FF6D6D6D</color>
+    <color name="hint_text">#FFFFFFFF</color>
+    <color name="dark_gray">#FFFFFFFF</color>
+    <color name="gray_fortext">#FFFFFFFF</color>
+    <color name="category_chip_bg">#2E323C</color>
+    <color name="category_chip_text">#FFFFFFFF</color>
+</resources>

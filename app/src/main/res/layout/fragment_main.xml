@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
+    android:background="@color/surface_screen"
     tools:context=".bottomnav.events.ThemainscreenFragment">
 
     <!-- Аватарка пользователя -->
@@ -58,7 +58,8 @@
                 android:background="@android:color/transparent"
                 android:hint="Поиск по названию"
                 android:textSize="16sp"
-                android:textColorHint="@color/gray"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/hint_text"
                 android:fontFamily="@font/nunito"
                 android:inputType="text"
                 android:maxLines="1" />

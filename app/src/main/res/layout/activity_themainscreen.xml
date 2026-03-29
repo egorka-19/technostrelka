@@ -58,7 +58,8 @@
                 android:background="@android:color/transparent"
                 android:hint="Поиск по названию"
                 android:textSize="16sp"
-                android:textColorHint="@color/gray"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/hint_text"
                 android:fontFamily="@font/nunito"
                 android:inputType="text"
                 android:maxLines="1" />

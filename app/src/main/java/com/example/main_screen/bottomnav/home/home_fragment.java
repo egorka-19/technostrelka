@@ -47,6 +47,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.main_screen.adapter.CategoryAdapter;
 import com.example.main_screen.model.CategoryModel;
+import com.example.main_screen.ui.ThemePreferences;
 
 public class home_fragment extends Fragment {
 
@@ -216,11 +217,14 @@ public class home_fragment extends Fragment {
         // Добавляем все метки на карту
         updatePlacemarkMapObjectVisibility();
 
-        // Устанавливаем начальную позицию камеры
+        // Устанавливаем начальную позицию камеры и стиль карты под тему приложения
         if (mapView != null) {
+            boolean dark = ThemePreferences.isDarkMode(requireContext());
+            mapView.getMapWindow().getMap().setNightModeEnabled(dark);
+            // MapKit в native не принимает animation == null — длительность 0 ≈ без анимации
             mapView.getMapWindow().getMap().move(
                     new CameraPosition(new Point(56.852924, 53.210754), 14.0f, 0.0f, 0.0f),
-                    new Animation(Animation.Type.SMOOTH, 5),
+                    new Animation(Animation.Type.LINEAR, 0f),
                     null);
         }
         return fragment_home;

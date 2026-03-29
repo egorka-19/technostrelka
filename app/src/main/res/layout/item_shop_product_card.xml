@@ -5,7 +5,7 @@
     android:layout_height="wrap_content"
     android:layout_marginEnd="10dp"
     android:minHeight="196dp"
-    app:cardBackgroundColor="@color/white"
+    app:cardBackgroundColor="@color/surface_card"
     app:cardCornerRadius="16dp"
     app:cardElevation="2dp">
 

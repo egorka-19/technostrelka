@@ -6,7 +6,20 @@
 
     <style name="Widget.App.BottomNavigationView" parent="Widget.MaterialComponents.BottomNavigationView">
         <item name="android:layout_height">@dimen/bottom_navigation_height</item>
+        <item name="android:minHeight">@dimen/bottom_navigation_height</item>
+        <item name="android:background">@color/bottom_nav_surface</item>
+        <item name="backgroundTint">@null</item>
+        <item name="elevation">0dp</item>
+        <item name="itemBackground">@android:color/transparent</item>
+        <item name="itemRippleColor">@color/bottom_nav_ripple</item>
+        <item name="itemIconSize">22dp</item>
         <item name="itemIconTint">@color/bottom_nav_icon_color</item>
         <item name="itemTextColor">@color/bottom_nav_text_color</item>
+        <item name="itemTextAppearanceActive">@style/TextAppearance.App.BottomNav.Label</item>
+        <item name="itemTextAppearanceInactive">@style/TextAppearance.App.BottomNav.Label</item>
+    </style>
+
+    <style name="TextAppearance.App.BottomNav.Label" parent="TextAppearance.AppCompat.Caption">
+        <item name="android:textSize">10sp</item>
     </style>
 </resources>

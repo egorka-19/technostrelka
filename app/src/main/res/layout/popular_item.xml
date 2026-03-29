@@ -8,6 +8,7 @@
     android:layout_marginTop="8dp"
     android:layout_marginEnd="8dp"
     android:layout_marginBottom="16dp"
+    app:cardBackgroundColor="@color/surface_card"
     app:cardCornerRadius="16dp"
     app:cardElevation="0dp">
 
@@ -46,6 +47,7 @@
             android:layout_marginStart="17dp"
             android:layout_marginTop="4dp"
             android:text="Название события"
+            android:textColor="@color/text_primary"
             android:textSize="21sp"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
@@ -60,6 +62,7 @@
             android:layout_marginEnd="8dp"
             android:layout_marginTop="4dp"
             android:text="Краткое описание мероприятия"
+            android:textColor="@color/text_secondary"
             android:textSize="16sp"
             android:maxLines="3"
             app:layout_constraintTop_toBottomOf="@id/pop_name"

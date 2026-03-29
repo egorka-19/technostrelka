@@ -2,6 +2,18 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <!-- Семантические цвета для светлой темы (в night переопределяются) -->
+    <color name="text_primary">#FF000000</color>
+    <color name="text_secondary">#FF000000</color>
+    <color name="surface_screen">#FFFFFFFF</color>
+    <color name="surface_card">#FFFFFFFF</color>
+    <color name="divider_line">#FFEEEEEE</color>
+    <color name="bottom_nav_surface">#FFFFFFFF</color>
+    <color name="bottom_nav_ripple">#14000000</color>
+    <color name="category_chip_bg">#FFFFFFFF</color>
+    <color name="category_chip_text">#FF000000</color>
+    <color name="login_button_bg">#FF000000</color>
+    <color name="md_primary">#FF0033</color>
     <color name="pink">#F4B6C7</color>
     <color name="blue">#5594F4</color>
     <color name="red_pink">#D33853</color>
@@ -12,11 +24,12 @@
     <color name="light_blue">#B3CFFF</color>
     <color name="light_purple">#E8CFFF</color>
     <color name="light_gray">#F5F5F5</color>
-    <color name="dark_gray">#757575</color>
+    <color name="dark_gray">#FF000000</color>
     <color name="purple_main">#9000FF</color>
-    <color name="gray_fortext">#FF9B9B9B</color>
+    <color name="gray_fortext">#FF000000</color>
     <color name="orange">#FF0033</color>
     <color name="violet">#9000FF</color>
+    <color name="hint_text">#FF6D6D6D</color>
     <color name="fon">#F4F4F4</color>
     <color name="route_accent">#FF1E39</color>
 </resources>

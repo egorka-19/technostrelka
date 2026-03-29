@@ -10,6 +10,7 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
+        android:name=".MainApp"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -18,7 +19,7 @@
         android:roundIcon="@drawable/app_logo"
         android:supportsRtl="true"
         android:usesCleartextTraffic="true"
-        android:theme="@style/Theme.MaterialComponents.Light.NoActionBar"
+        android:theme="@style/Theme.Main_Screen"
         tools:targetApi="31">
         <activity
             android:name=".ChatActivity"
@@ -127,13 +128,6 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".Settings_Activity"
-            android:exported="true">
-            <intent-filter>
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <activity
             android:name=".favourite"
             android:exported="true">
             <intent-filter>
@@ -142,48 +136,48 @@
         </activity>
         <activity
             android:name=".ArticleActivity"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+            android:theme="@style/Theme.Main_Screen" />
         <activity
             android:name=".RoutesFilterActivity"
             android:exported="false" />
         <activity
             android:name=".profile.ProfileFavoritesListActivity"
             android:exported="false"
-            android:theme="@style/Theme.MaterialComponents.Light.NoActionBar" />
+            android:theme="@style/Theme.Main_Screen" />
         <activity
             android:name=".RoutePreviewActivity"
             android:exported="false"
-            android:theme="@style/Theme.MaterialComponents.Light.NoActionBar" />
+            android:theme="@style/Theme.Main_Screen" />
         <activity
             android:name=".RouteItineraryActivity"
             android:exported="false"
-            android:theme="@style/Theme.MaterialComponents.Light.NoActionBar" />
+            android:theme="@style/Theme.Main_Screen" />
         <activity
             android:name=".shop.ShopActivity"
             android:exported="false"
-            android:theme="@style/Theme.MaterialComponents.Light.NoActionBar" />
+            android:theme="@style/Theme.Main_Screen" />
         <activity
             android:name=".shop.ShopFilterActivity"
             android:exported="false"
-            android:theme="@style/Theme.MaterialComponents.Light.NoActionBar" />
+            android:theme="@style/Theme.Main_Screen" />
         <activity
             android:name=".shop.ShopProductDetailActivity"
             android:exported="false"
-            android:theme="@style/Theme.MaterialComponents.Light.NoActionBar" />
+            android:theme="@style/Theme.Main_Screen" />
         <activity
             android:name=".shop.ShopCheckoutActivity"
             android:exported="false"
-            android:theme="@style/Theme.MaterialComponents.Light.NoActionBar"
+            android:theme="@style/Theme.Main_Screen"
             android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".shop.ShopPaymentFakeActivity"
             android:exported="false"
-            android:theme="@style/Theme.MaterialComponents.Light.NoActionBar"
+            android:theme="@style/Theme.Main_Screen"
             android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".shop.ShopOrderSuccessActivity"
             android:exported="false"
-            android:theme="@style/Theme.MaterialComponents.Light.NoActionBar" />
+            android:theme="@style/Theme.Main_Screen" />
 
         <meta-data
             android:name="preloaded_fonts"

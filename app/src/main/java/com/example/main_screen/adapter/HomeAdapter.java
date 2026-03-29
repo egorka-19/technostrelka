@@ -8,6 +8,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.main_screen.model.HomeCategory;
@@ -62,11 +63,11 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.ViewHolder> {
         
         // Set background and text color based on selection
         if (position == selectedPosition) {
-            holder.cardView.setCardBackgroundColor(context.getResources().getColor(R.color.orange));
-            holder.name.setTextColor(context.getResources().getColor(android.R.color.white));
+            holder.cardView.setCardBackgroundColor(ContextCompat.getColor(context, R.color.orange));
+            holder.name.setTextColor(ContextCompat.getColor(context, android.R.color.white));
         } else {
-            holder.cardView.setCardBackgroundColor(context.getResources().getColor(android.R.color.white));
-            holder.name.setTextColor(context.getResources().getColor(R.color.gray_fortext));
+            holder.cardView.setCardBackgroundColor(ContextCompat.getColor(context, R.color.category_chip_bg));
+            holder.name.setTextColor(ContextCompat.getColor(context, R.color.category_chip_text));
         }
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {

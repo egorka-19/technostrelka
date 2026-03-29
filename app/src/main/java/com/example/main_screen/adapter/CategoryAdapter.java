@@ -19,7 +19,8 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
     private Context context;
     private List<CategoryModel> categoryList;
     private OnCategoryClickListener listener;
-    private int selectedPosition = -1;
+    /** По умолчанию выбрана первая категория («Все»). */
+    private int selectedPosition = 0;
 
     public interface OnCategoryClickListener {
         void onCategoryClick(int position, String categoryType);
@@ -53,7 +54,9 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
         holder.itemView.setOnClickListener(v -> {
             int previousSelected = selectedPosition;
             selectedPosition = position;
-            notifyItemChanged(previousSelected);
+            if (previousSelected >= 0 && previousSelected != selectedPosition) {
+                notifyItemChanged(previousSelected);
+            }
             notifyItemChanged(selectedPosition);
             listener.onCategoryClick(position, category.getType());
         });

@@ -16,6 +16,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -119,7 +120,8 @@ public class ShopActivity extends AppCompatActivity {
 
         backButton.setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
 
-        searchResultsRecycler.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+        int shopSearchSpan = getResources().getInteger(R.integer.shop_search_grid_span_count);
+        searchResultsRecycler.setLayoutManager(new GridLayoutManager(this, shopSearchSpan));
         searchAdapter = new ShopProductAdapter(this, new ArrayList<>(), true, userEmail);
         searchResultsRecycler.setAdapter(searchAdapter);
 

@@ -2,6 +2,8 @@ package com.example.main_screen.adapter;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -54,6 +56,13 @@ public class RouteAdapter extends RecyclerView.Adapter<RouteAdapter.ViewHolder> 
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         RouteModel route = routeList.get(position);
 
+        if (!isVertical) {
+            RecyclerView rv = holder.itemView.getParent() instanceof RecyclerView
+                    ? (RecyclerView) holder.itemView.getParent()
+                    : null;
+            holder.itemView.post(() -> applyHorizontalCardWidth(holder.itemView, rv));
+        }
+
         // Загрузка изображения
         String resolved = MediaUrlUtils.resolveForApiClient(route.getImageUrl());
         if (!TextUtils.isEmpty(resolved)) {
@@ -79,6 +88,44 @@ public class RouteAdapter extends RecyclerView.Adapter<RouteAdapter.ViewHolder> 
     @Override
     public int getItemCount() {
         return routeList != null ? routeList.size() : 0;
+    }
+
+    /**
+     * На планшете в альбоме три карточки в ряд тянутся почти на всю ширину с небольшими зазорами.
+     * На телефоне и в портрете — фиксированная ширина из dimen.
+     */
+    private static void applyHorizontalCardWidth(View itemView, RecyclerView rv) {
+        Context ctx = itemView.getContext();
+        Resources res = ctx.getResources();
+        Configuration cfg = res.getConfiguration();
+        int defaultW = (int) res.getDimension(R.dimen.route_horizontal_card_width);
+        if (cfg.smallestScreenWidthDp < 600 || cfg.orientation != Configuration.ORIENTATION_LANDSCAPE) {
+            setItemWidth(itemView, defaultW);
+            return;
+        }
+        if (rv == null) {
+            setItemWidth(itemView, defaultW);
+            return;
+        }
+        int rw = rv.getWidth();
+        if (rw <= 0) {
+            return;
+        }
+        int gap = (int) res.getDimension(R.dimen.route_horizontal_card_between_gap);
+        int padding = rv.getPaddingStart() + rv.getPaddingEnd();
+        int inner = rw - padding - 2 * gap;
+        int perThird = inner / 3;
+        int w = Math.max(defaultW, perThird);
+        setItemWidth(itemView, w);
+    }
+
+    private static void setItemWidth(View itemView, int widthPx) {
+        ViewGroup.LayoutParams lp = itemView.getLayoutParams();
+        if (lp == null || lp.width == widthPx) {
+            return;
+        }
+        lp.width = widthPx;
+        itemView.setLayoutParams(lp);
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {

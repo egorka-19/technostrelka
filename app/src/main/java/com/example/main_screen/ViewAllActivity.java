@@ -34,7 +34,8 @@ public class ViewAllActivity extends AppCompatActivity {
         setContentView(R.layout.activity_view_all);
         String type = getIntent().getStringExtra("type");
         recyclerView = findViewById(R.id.view_all_rec);
-        recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
+        int span = getResources().getInteger(R.integer.view_all_grid_span_count);
+        recyclerView.setLayoutManager(new GridLayoutManager(this, span));
         viewAllModelList = new ArrayList<>();
         viewAllAdapters = new ViewAllAdapters(this, viewAllModelList);
         recyclerView.setAdapter(viewAllAdapters);

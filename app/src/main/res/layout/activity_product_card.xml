@@ -27,6 +27,8 @@
         android:id="@+id/pro_card_img"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:layout_marginStart="@dimen/product_photo_horizontal_inset"
+        android:layout_marginEnd="@dimen/product_photo_horizontal_inset"
         app:layout_constraintBottom_toBottomOf="@id/photo_guideline"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

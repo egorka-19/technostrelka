@@ -7,6 +7,8 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.main_screen.R;
@@ -43,12 +45,14 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         CategoryModel category = categoryList.get(position);
         holder.categoryName.setText(category.getName());
-        
-        // Устанавливаем фон в зависимости от выбранного элемента
+
+        // Как на главной (HomeAdapter): оранжевый выбранный чип, фон/текст из палитры категорий
         if (position == selectedPosition) {
-            holder.itemView.setBackgroundResource(R.drawable.selected_category_background);
+            holder.cardView.setCardBackgroundColor(ContextCompat.getColor(context, R.color.orange));
+            holder.categoryName.setTextColor(ContextCompat.getColor(context, android.R.color.white));
         } else {
-            holder.itemView.setBackgroundResource(R.drawable.unselected_category_background);
+            holder.cardView.setCardBackgroundColor(ContextCompat.getColor(context, R.color.category_chip_bg));
+            holder.categoryName.setTextColor(ContextCompat.getColor(context, R.color.category_chip_text));
         }
 
         holder.itemView.setOnClickListener(v -> {
@@ -73,10 +77,12 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         TextView categoryName;
+        CardView cardView;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             categoryName = itemView.findViewById(R.id.category_name);
+            cardView = (CardView) itemView;
         }
     }
 } 

@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="bottom_navigation_height">56dp</dimen>
+    <dimen name="route_horizontal_card_width">150dp</dimen>
+    <dimen name="route_horizontal_card_between_gap">10dp</dimen>
+    <dimen name="event_card_grid_horizontal_inset">0dp</dimen>
+    <dimen name="shop_grid_card_horizontal_inset">0dp</dimen>
+    <dimen name="product_photo_horizontal_inset">0dp</dimen>
 </resources> 

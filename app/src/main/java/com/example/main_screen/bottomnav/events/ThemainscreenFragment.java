@@ -125,7 +125,8 @@ public class ThemainscreenFragment extends Fragment {
         // Загрузка аватарки пользователя
         loadUserAvatar();
 
-        popularRec.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
+        int eventSpan = getResources().getInteger(R.integer.events_grid_span_count);
+        popularRec.setLayoutManager(new GridLayoutManager(getContext(), eventSpan));
         popularModelList = new ArrayList<>();
         popularAdapters = new PopularAdapters(getActivity(), popularModelList);
         // Устанавливаем слушатель для обновления избранного
@@ -183,7 +184,8 @@ public class ThemainscreenFragment extends Fragment {
         search_box = view.findViewById(R.id.search_box);
         viewAllModelList = new ArrayList<>();
         viewAllAdapters = new ViewAllAdapters(getContext(), viewAllModelList);
-        recyclerViewSearch.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
+        int searchSpan = getResources().getInteger(R.integer.search_results_grid_span_count);
+        recyclerViewSearch.setLayoutManager(new GridLayoutManager(getContext(), searchSpan));
         recyclerViewSearch.setAdapter(viewAllAdapters);
         recyclerViewSearch.setHasFixedSize(true);
         

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="events_grid_span_count">1</integer>
+    <integer name="search_results_grid_span_count">1</integer>
+    <integer name="view_all_grid_span_count">2</integer>
+    <integer name="shop_search_grid_span_count">1</integer>
+</resources>
